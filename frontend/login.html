@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Reporting System - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .login-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2d3561 0%, #3d4575 100%);
+        }
+
+        .login-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 90%;
+            max-width: 1000px;
+            height: auto;
+            min-height: 500px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-form-section {
+            background: linear-gradient(135deg, #2d3561 0%, #3d4575 100%);
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+        }
+
+        .login-image-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-image-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23667eea;stop-opacity:0.3" /><stop offset="100%" style="stop-color:%23764ba2;stop-opacity:0.3" /></linearGradient></defs><polygon points="600,100 800,700 400,700" fill="url(%23grad)" opacity="0.8"/><polygon points="200,500 400,300 600,600" fill="url(%23grad)" opacity="0.6"/></svg>');
+            background-size: cover;
+        }
+
+        .image-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .image-content h2 {
+            font-size: 32px;
+            font-weight: 300;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-family: 'Raleway', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.4);
+        }
+
+        .form-group input.error {
+            background: rgba(248, 113, 113, 0.2);
+            border: 1px solid rgba(248, 113, 113, 0.5);
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 12px;
+        }
+
+        .remember-forgot a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .remember-forgot a:hover {
+            color: white;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #f5a962;
+            border: none;
+            border-radius: 6px;
+            color: #2d3561;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .login-btn:hover:not(:disabled) {
+            background: #f59e51;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 169, 98, 0.3);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            display: none;
+            background: rgba(248, 113, 113, 0.15);
+            border-left: 4px solid #f87171;
+            padding: 12px 16px;
+            border-radius: 6px;
+            color: #fca5a5;
+            font-size: 13px;
+            margin-bottom: 20px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .help-text {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .help-text strong {
+            display: block;
+            margin-bottom: 8px;
+            opacity: 1;
+        }
+
+        .domain-badge {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        @media (max-width: 768px) {
+            .login-box {
+                grid-template-columns: 1fr;
+            }
+
+            .login-image-section {
+                display: none;
+            }
+
+            .login-form-section {
+                padding: 40px 30px;
+            }
+
+            .form-title {
+                font-size: 24px;
+            }
+        }
+
+        .social-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            opacity: 0.7;
+        }
+
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            transition: opacity 0.3s;
+        }
+
+        .social-links a:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-form-section">
+                <div class="form-title">Incident Reporting System</div>
+                <div class="form-subtitle">BUET Campus Safety Portal</div>
+
+                <form id="loginForm">
+                    <div class="error-message" id="errorMessage"></div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="your.email@buet.ac.bd"
+                            required
+                            autocomplete="email"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                        />
+                    </div>
+
+                    <div class="remember-forgot">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="remember" />
+                            <label for="remember" style="margin: 0; cursor: pointer;">Remember me</label>
+                        </div>
+                        <a href="#forgot">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="login-btn" id="loginBtn">Login</button>
+                </form>
+
+                <div class="help-text">
+                    <strong>Valid Email Domains:</strong>
+                    <span class="domain-badge">@buet.ac.bd</span>
+                    <span class="domain-badge">@ugrad.buet.ac.bd</span>
+                    <span class="domain-badge">@dmp.bd</span>
+                    <br><br>
+                    <strong>Admin Accounts (for testing):</strong><br>
+                    authority@buet.ac.bd<br>
+                    dsw@buet.ac.bd<br>
+                    vc@buet.ac.bd<br>
+                    registrar.office@buet.ac.bd<br>
+                    dhakametropolice@dmp.bd
+                </div>
+            </div>
+
+            <div class="login-image-section">
+                <div class="image-content">
+                    <h2>Campus Safety First</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('errorMessage');
+        const loginBtn = document.getElementById('loginBtn');
+
+        // Use relative path to support both direct file access and server serving
+        const API_URL = '/api';
+
+        // Valid domains
+        const VALID_DOMAINS = ['@buet.ac.bd', '@ugrad.buet.ac.bd', '@dmp.bd'];
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            emailInput.classList.add('error');
+            passwordInput.classList.add('error');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+                emailInput.classList.remove('error');
+                passwordInput.classList.remove('error');
+            }, 5000);
+        }
+
+        function validateEmail(email) {
+            const hasValidDomain = VALID_DOMAINS.some(domain => email.endsWith(domain));
+            if (!hasValidDomain) {
+                showError(`Invalid email domain. Please use ${VALID_DOMAINS.join(', ')}`);
+                return false;
+            }
+            return true;
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            // Validate email domain
+            if (!validateEmail(email)) {
+                return;
+            }
+
+            if (!password) {
+                showError('Please enter your password');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                console.log('Attempting login with:', { email, password });
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (!response.ok) {
+                    showError(data.error || 'Invalid email or password');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                    return;
+                }
+
+                // Store user info
+                const user = data.user;
+                localStorage.setItem('user', JSON.stringify(user));
+                localStorage.setItem('token', data.token);
+
+                // Redirect to dashboard
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error('Login error:', err);
+                showError('Network error. Are you sure the server is running on localhost:3000?');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        // Remove error styling on input
+        emailInput.addEventListener('input', () => {
+            emailInput.classList.remove('error');
+        });
+        passwordInput.addEventListener('input', () => {
+            passwordInput.classList.remove('error');
+        });
+
+        // Check if already logged in
+        window.addEventListener('load', () => {
+            const user = localStorage.getItem('user');
+            if (user) {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

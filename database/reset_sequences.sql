@@ -1,0 +1,17 @@
+-- Reset SERIAL sequences to 1
+ALTER SEQUENCE severity_level_severity_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_status_status_id_seq RESTART WITH 1;
+ALTER SEQUENCE locations_location_id_seq RESTART WITH 1;
+ALTER SEQUENCE users_user_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_types_type_id_seq RESTART WITH 1;
+ALTER SEQUENCE incidents_incident_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_status_history_history_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_assignments_assignment_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_comments_comment_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_photos_photo_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_video_video_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_audio_audio_id_seq RESTART WITH 1;
+ALTER SEQUENCE notifications_notification_id_seq RESTART WITH 1;
+ALTER SEQUENCE forum_thread_thread_id_seq RESTART WITH 1;
+ALTER SEQUENCE forum_posts_post_id_seq RESTART WITH 1;
+ALTER SEQUENCE incident_analytics_analytics_id_seq RESTART WITH 1;
