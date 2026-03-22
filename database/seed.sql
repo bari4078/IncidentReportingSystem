@@ -1,9 +1,14 @@
--- clean slate: remove existing data to avoid FK conflicts
-TRUNCATE TABLE INCIDENT_AUDIO, INCIDENT_VIDEO, INCIDENT_PHOTOS, INCIDENT_COMMENTS,
+BEGIN;
+
+-- ============================================================================
+-- CLEAN SLATE: Remove existing data and reset identity sequences
+-- ============================================================================
+TRUNCATE TABLE 
+  INCIDENT_AUDIO, INCIDENT_VIDEO, INCIDENT_PHOTOS, INCIDENT_COMMENTS,
   INCIDENT_ASSIGNMENTS, INCIDENT_STATUS_HISTORY, INCIDENTS,
   INCIDENT_TYPES, FORUM_POSTS, FORUM_THREAD, NOTIFICATIONS,
   INCIDENT_ANALYTICS, USERS, Locations, INCIDENT_STATUS, SEVERITY_LEVEL
-  RESTART IDENTITY CASCADE;
+RESTART IDENTITY CASCADE;
 
 -- ============================================================================
 -- SEVERITY LEVELS
@@ -63,7 +68,6 @@ VALUES
   ('Water Treatment Plant', 'Infrastructure', 'Ground', 'Plant'),
   ('Shaheed Minar (Monument)', 'Memorial', 'Ground', 'Monument');
 
-
 -- ============================================================================
 -- USERS
 -- ============================================================================
@@ -80,7 +84,7 @@ VALUES
 ON CONFLICT (Email) DO NOTHING;
 
 -- ============================================================================
--- INCIDENT TYPES - All 4 Types as per requirements
+-- INCIDENT TYPES
 -- ============================================================================
 INSERT INTO INCIDENT_TYPES (Type_name, Default_severity_level, Description) 
 VALUES
@@ -90,51 +94,40 @@ VALUES
   ('Medical', (SELECT severity_id FROM severity_level WHERE severity_name='Critical' LIMIT 1), 'Medical emergencies or health-related incidents');
 
 -- ============================================================================
--- INCIDENTS - Various Types with Different Scenarios (BUET Campus)
+-- INCIDENTS
 -- ============================================================================
-
--- INCIDENT 1: Maintenance Issue at ECE Building
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (1, 3, 5, 1, 1, 'Broken light fixture in ECE Building, lab area on 2nd floor', true);
 
--- INCIDENT 2: Lost Items at Library
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (4, 1, 2, 2, 1, 'Lost student ID card in Shahid Abrar Fahad Library', true);
 
--- INCIDENT 3: Medical Emergency at Medical Center
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (7, 4, 25, 4, 2, 'Student collapsed near Medical Center, requires immediate attention', true);
 
--- INCIDENT 4: Harassment (Anonymous) at Cafeteria
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (8, 2, 22, 2, 1, 'Inappropriate conduct observed in cafeteria area', false);
 
--- INCIDENT 5: Network Maintenance Issue at IT Center
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (1, 3, 28, 3, 2, 'Internet connectivity down at IT Center (ICT Academy)', true);
 
--- INCIDENT 6: Lost Equipment at EME Building
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (4, 1, 6, 3, 3, 'Missing surveying equipment from EME Building lab', true);
 
--- INCIDENT 7: Harassment at Dormitory
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (8, 2, 12, 2, 2, 'Unwelcome behavior reported at Ahsanullah Hall', false);
 
--- INCIDENT 8: Infrastructure Maintenance
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (3, 3, 30, 1, 4, 'Water supply restored at Water Treatment Plant', true);
 
--- Additional incidents for better analytics
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (7, 4, 21, 3, 1, 'Medical assistance needed near Mosque area during prayer time', true);
 
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (1, 3, 7, 2, 2, 'Ceiling leak reported in Civil Engineering Building', true);
 
-
 -- ============================================================================
--- INCIDENT STATUS HISTORY - Track Status Changes
+-- INCIDENT STATUS HISTORY
 -- ============================================================================
 INSERT INTO INCIDENT_STATUS_HISTORY (Incident_id, Old_status_id, New_status_id, Changed_by, Change_time)
 VALUES
@@ -146,21 +139,20 @@ VALUES
   (8, 1, 4, 2, CURRENT_TIMESTAMP - INTERVAL '3 days');
 
 -- ============================================================================
--- INCIDENT ASSIGNMENTS - Assign Incidents to Admins/Analysts
+-- INCIDENT ASSIGNMENTS
 -- ============================================================================
 INSERT INTO INCIDENT_ASSIGNMENTS (Incident_id, Assigned_to, Is_active)
 VALUES
-  (1, 2, true),   -- Assigned to Alice (Admin)
-  (2, 5, true),   -- Assigned to Mike (Admin)
-  (3, 2, true),   -- Assigned to Alice (Admin)
-  (5, 2, true),   -- Assigned to Alice (Admin)
-  (6, 5, true),   -- Assigned to Mike (Admin)
-  (8, 5, false);  -- Previously assigned to Mike
+  (1, 2, true),   
+  (2, 5, true),   
+  (3, 2, true),   
+  (5, 2, true),   
+  (6, 5, true),   
+  (8, 5, false);  
 
 -- ============================================================================
--- INCIDENT COMMENTS - Public and Internal Comments
+-- INCIDENT COMMENTS
 -- ============================================================================
-
 -- Incident 1 Comments (Maintenance)
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
 VALUES 
@@ -170,8 +162,8 @@ VALUES
 -- Incident 2 Comments (Lost Items)
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
 VALUES
-  (1, 1, 'Thank you for reporting this. We are investigating.', false, CURRENT_TIMESTAMP - INTERVAL '1 day'),
-  (5, 2, 'Checked security cameras - laptop last seen at 2 PM', true, CURRENT_TIMESTAMP - INTERVAL '18 hours');
+  (2, 4, 'Thank you for reporting this. We are investigating.', false, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+  (2, 5, 'Checked security cameras - laptop last seen at 2 PM', true, CURRENT_TIMESTAMP - INTERVAL '18 hours');
 
 -- Incident 3 Comments (Medical Emergency)
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
@@ -192,7 +184,7 @@ VALUES
   (8, 5, 'Completed maintenance - all dispensers refilled', false, CURRENT_TIMESTAMP - INTERVAL '2.5 days');
 
 -- ============================================================================
--- INCIDENT PHOTOS - Links to Photo Files
+-- INCIDENT PHOTOS
 -- ============================================================================
 INSERT INTO INCIDENT_PHOTOS (Incident_id, Uploaded_by, File_path, Uploaded_time)
 VALUES
@@ -201,7 +193,7 @@ VALUES
   (6, 4, '/uploads/missing_projector.jpg', CURRENT_TIMESTAMP - INTERVAL '12 hours');
 
 -- ============================================================================
--- NOTIFICATIONS - Alert Users
+-- NOTIFICATIONS
 -- ============================================================================
 INSERT INTO NOTIFICATIONS (User_id, Incident_id, Message_text, Notification_type, Is_read)
 VALUES
@@ -212,29 +204,54 @@ VALUES
   (4, 6, 'A new comment has been added to your incident', 'New Comment', false);
 
 -- ============================================================================
--- INCIDENT ANALYTICS - Precomputed Stats
+-- INCIDENT ANALYTICS - Sequence Independent 
 -- ============================================================================
 INSERT INTO INCIDENT_ANALYTICS (Type_id, Average_resolving_time, Success_rate)
-VALUES
-  (3, INTERVAL '2 days 3 hours', 95.50),
-  (1, INTERVAL '5 days 12 hours', 80.25),
-  (2, INTERVAL '3 days', 85.75),
-  (4, INTERVAL '4 hours', 100.00);
+SELECT type_id, INTERVAL '2 days 3 hours', 95.50 FROM INCIDENT_TYPES WHERE Type_name = 'Maintenance';
 
--- ============================================================================
--- FORUM THREADS AND POSTS - Community Discussions
--- ============================================================================
-INSERT INTO FORUM_THREAD (User_id, Title, Created_at)
-VALUES
-  (1, 'Best practices for reporting incidents', CURRENT_TIMESTAMP - INTERVAL '10 days'),
-  (3, 'How to prevent theft in office spaces', CURRENT_TIMESTAMP - INTERVAL '7 days'),
-  (7, 'Medical emergency response procedures', CURRENT_TIMESTAMP - INTERVAL '5 days');
+INSERT INTO INCIDENT_ANALYTICS (Type_id, Average_resolving_time, Success_rate)
+SELECT type_id, INTERVAL '5 days 12 hours', 80.25 FROM INCIDENT_TYPES WHERE Type_name = 'Theft/Lost Items';
 
+INSERT INTO INCIDENT_ANALYTICS (Type_id, Average_resolving_time, Success_rate)
+SELECT type_id, INTERVAL '3 days', 85.75 FROM INCIDENT_TYPES WHERE Type_name = 'Harassment';
+
+INSERT INTO INCIDENT_ANALYTICS (Type_id, Average_resolving_time, Success_rate)
+SELECT type_id, INTERVAL '4 hours', 100.00 FROM INCIDENT_TYPES WHERE Type_name = 'Medical';
+
+-- ====================================================================
+-- FORUM THREADS + POSTS (Fixed with proper type casting)
+-- ====================================================================
+
+-- Step 1: Insert threads and capture IDs
+WITH inserted_threads AS (
+  INSERT INTO FORUM_THREAD (User_id, Title, Created_at)
+  VALUES
+    (1, 'Best practices for reporting incidents', CURRENT_TIMESTAMP - INTERVAL '10 days'),
+    (3, 'How to prevent theft in office spaces', CURRENT_TIMESTAMP - INTERVAL '7 days'),
+    (7, 'Medical emergency response procedures', CURRENT_TIMESTAMP - INTERVAL '5 days')
+  RETURNING thread_id, title
+)
+
+-- Step 2: Insert posts using REAL generated IDs
 INSERT INTO FORUM_POSTS (Thread_id, User_id, Post_text, Is_anonymous, Created_at)
-VALUES
-  (1, 1, 'Always include as much detail as possible when reporting', false, CURRENT_TIMESTAMP - INTERVAL '10 days'),
-  (1, 2, 'Attach photos if possible for better investigation', false, CURRENT_TIMESTAMP - INTERVAL '9 days'),
-  (2, 3, 'Keep valuables secured and use lockers when available', false, CURRENT_TIMESTAMP - INTERVAL '7 days'),
-  (2, 4, 'Report suspicious activity immediately', false, CURRENT_TIMESTAMP - INTERVAL '6.5 days'),
-  (3, 7, 'Know the location of medical kits and first aid supplies', false, CURRENT_TIMESTAMP - INTERVAL '5 days'),
-  (3, 2, 'Training on CPR and basic first aid is available monthly', false, CURRENT_TIMESTAMP - INTERVAL '4.5 days');
+SELECT 
+  t.thread_id,
+  p.user_id,
+  p.post_text,
+  p.is_anonymous,
+  p.created_at
+FROM inserted_threads t
+JOIN (
+  VALUES
+    ('Best practices for reporting incidents'::text, 1::int, 'Always include as much detail as possible when reporting'::text, false::boolean, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+    ('Best practices for reporting incidents'::text, 2::int, 'Attach photos if possible for better investigation'::text, false::boolean, CURRENT_TIMESTAMP - INTERVAL '9 days'),
+
+    ('How to prevent theft in office spaces'::text, 3::int, 'Keep valuables secured and use lockers when available'::text, false::boolean, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+    ('How to prevent theft in office spaces'::text, 4::int, 'Report suspicious activity immediately'::text, false::boolean, CURRENT_TIMESTAMP - INTERVAL '6.5 days'),
+
+    ('Medical emergency response procedures'::text, 7::int, 'Know the location of medical kits and first aid supplies'::text, false::boolean, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+    ('Medical emergency response procedures'::text, 2::int, 'Training on CPR and basic first aid is available monthly'::text, false::boolean, CURRENT_TIMESTAMP - INTERVAL '4.5 days')
+) AS p(title, user_id, post_text, is_anonymous, created_at)
+ON t.title = p.title;
+
+COMMIT;

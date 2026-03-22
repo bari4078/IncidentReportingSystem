@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Reporting System - Register</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; font-family: 'Raleway', sans-serif; }
+        
+        .login-container {
+            width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #2d3561 0%, #3d4575 100%);
+        }
+
+        .login-box {
+            display: grid; grid-template-columns: 1fr 1fr; width: 90%; max-width: 1000px;
+            height: auto; min-height: 500px; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-form-section {
+            background: linear-gradient(135deg, #2d3561 0%, #3d4575 100%);
+            padding: 50px 40px; display: flex; flex-direction: column; justify-content: center;
+            color: white;
+        }
+
+        .login-image-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover; background-position: center; position: relative; overflow: hidden;
+        }
+
+        .login-image-section::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23667eea;stop-opacity:0.3" /><stop offset="100%" style="stop-color:%23764ba2;stop-opacity:0.3" /></linearGradient></defs><polygon points="600,100 800,700 400,700" fill="url(%23grad)" opacity="0.8"/><polygon points="200,500 400,300 600,600" fill="url(%23grad)" opacity="0.6"/></svg>');
+            background-size: cover;
+        }
+
+        .image-content {
+            position: relative; z-index: 2; width: 100%; height: 100%; display: flex;
+            align-items: center; justify-content: center; padding: 30px; text-align: center; color: white;
+        }
+
+        .image-content h2 { font-size: 32px; font-weight: 300; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+
+        .form-title { font-size: 28px; font-weight: 600; margin-bottom: 10px; text-align: left; }
+        .form-subtitle { font-size: 14px; opacity: 0.9; margin-bottom: 30px; text-align: left; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 6px; opacity: 0.9;
+        }
+        .form-group input {
+            width: 100%; padding: 12px 14px; border: none; border-radius: 6px;
+            background: rgba(255, 255, 255, 0.15); color: white; font-family: 'Raleway', sans-serif;
+            font-size: 14px; transition: all 0.3s;
+        }
+        .form-group input::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .form-group input:focus {
+            outline: none; background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.4);
+        }
+        .form-group input.error {
+            background: rgba(248, 113, 113, 0.2); border: 1px solid rgba(248, 113, 113, 0.5);
+        }
+
+        .login-btn {
+            width: 100%; padding: 14px; background: #f5a962; border: none; border-radius: 6px;
+            color: #2d3561; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s;
+            font-family: 'Raleway', sans-serif; margin-top: 10px;
+        }
+        .login-btn:hover:not(:disabled) {
+            background: #f59e51; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(245, 169, 98, 0.3);
+        }
+        .login-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .error-message {
+            display: none; background: rgba(248, 113, 113, 0.15); border-left: 4px solid #f87171;
+            padding: 12px 16px; border-radius: 6px; color: #fca5a5; font-size: 13px; margin-bottom: 15px;
+            animation: slideDown 0.3s ease-out;
+        }
+        .error-message.show { display: block; }
+        
+        .success-message {
+            display: none; background: rgba(16, 185, 129, 0.15); border-left: 4px solid #10b981;
+            padding: 12px 16px; border-radius: 6px; color: #6ee7b7; font-size: 13px; margin-bottom: 15px;
+            animation: slideDown 0.3s ease-out;
+        }
+        .success-message.show { display: block; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .login-box { grid-template-columns: 1fr; }
+            .login-image-section { display: none; }
+            .login-form-section { padding: 40px 30px; }
+            .form-title { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-form-section">
+                <div class="form-title">Create an Account</div>
+                <div class="form-subtitle">Register to report and track incidents</div>
+
+                <form id="registerForm">
+                    <div class="error-message" id="errorMessage"></div>
+                    <div class="success-message" id="successMessage"></div>
+
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" placeholder="John Doe" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="your.email@buet.ac.bd" required autocomplete="email" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="017xxxxxxxx" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="••••••••" required autocomplete="new-password" />
+                    </div>
+
+                    <button type="submit" class="login-btn" id="registerBtn">Register</button>
+                </form>
+
+                <div style="text-align: center; margin-top: 25px;">
+                    <span style="color: rgba(255,255,255,0.7); font-size: 14px;">Already have an account?</span>
+                    <a href="login.html" style="color: #667eea; text-decoration: none; font-weight: 600; margin-left: 5px; font-size: 14px;">Login instead</a>
+                </div>
+            </div>
+
+            <div class="login-image-section">
+                <div class="image-content">
+                    <h2>Join the Safe Campus Initiative</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const registerBtn = document.getElementById('registerBtn');
+
+        const API_URL = '/api';
+
+        const VALID_DOMAINS = ['@buet.ac.bd', '@ugrad.buet.ac.bd', '@cse.buet.ac.bd', '@dmp.bd'];
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 6000);
+        }
+        
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
+            errorMessage.classList.remove('show');
+        }
+
+        function validateEmail(email) {
+            const hasValidDomain = VALID_DOMAINS.some(domain => email.endsWith(domain));
+            if (!hasValidDomain) {
+                showError(`Invalid email domain. Please use ${VALID_DOMAINS.join(', ')}`);
+                return false;
+            }
+            return true;
+        }
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!validateEmail(email)) return;
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters');
+                return;
+            }
+
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Registering...';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.error || 'Server error during registration');
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = 'Register';
+                    return;
+                }
+
+                showSuccess('Registration successful! Redirecting to login...');
+                
+                // Redirect back to login after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Registration error:', err);
+                showError('Network error. Unable to connect to backend.');
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Register';
+            }
+        });
+
+        const inputs = [nameInput, emailInput, phoneInput, passwordInput];
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                errorMessage.classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html>

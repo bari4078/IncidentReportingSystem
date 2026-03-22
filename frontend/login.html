@@ -321,25 +321,18 @@
                             <input type="checkbox" id="remember" />
                             <label for="remember" style="margin: 0; cursor: pointer;">Remember me</label>
                         </div>
-                        <a href="#forgot">Forgot password?</a>
+                        <a href="forgot-password.html">Forgot password?</a>
                     </div>
 
                     <button type="submit" class="login-btn" id="loginBtn">Login</button>
                 </form>
 
-                <div class="help-text">
-                    <strong>Valid Email Domains:</strong>
-                    <span class="domain-badge">@buet.ac.bd</span>
-                    <span class="domain-badge">@ugrad.buet.ac.bd</span>
-                    <span class="domain-badge">@dmp.bd</span>
-                    <br><br>
-                    <strong>Admin Accounts (for testing):</strong><br>
-                    authority@buet.ac.bd<br>
-                    dsw@buet.ac.bd<br>
-                    vc@buet.ac.bd<br>
-                    registrar.office@buet.ac.bd<br>
-                    dhakametropolice@dmp.bd
+                <div style="text-align: center; margin-top: 25px;">
+                    <span style="color: rgba(255,255,255,0.7); font-size: 14px;">Don't have an account?</span>
+                    <a href="register.html" style="color: #f5a962; text-decoration: none; font-weight: 600; margin-left: 5px; font-size: 14px;">Register now</a>
                 </div>
+
+
             </div>
 
             <div class="login-image-section">
@@ -374,7 +367,7 @@
         }
 
         // Valid domains
-        const VALID_DOMAINS = ['@buet.ac.bd', '@ugrad.buet.ac.bd', '@dmp.bd'];
+        const VALID_DOMAINS = ['@buet.ac.bd', '@ugrad.buet.ac.bd', '@cse.buet.ac.bd', '@dmp.bd'];
 
         function showError(message) {
             errorMessage.textContent = message;
@@ -414,7 +407,6 @@
             }
 
             loginBtn.disabled = true;
-            loginBtn.textContent = 'Logging in...';
 
             try {
                 console.log('Attempting login with:', { email, password });
@@ -430,7 +422,6 @@
                 if (!response.ok) {
                     showError(data.error || 'Invalid email or password');
                     loginBtn.disabled = false;
-                    loginBtn.textContent = 'Login';
                     return;
                 }
 
@@ -445,7 +436,6 @@
                 console.error('Login error:', err);
                 showError('Network error. Are you sure the server is running on localhost:3000?');
                 loginBtn.disabled = false;
-                loginBtn.textContent = 'Login';
             }
         });
 

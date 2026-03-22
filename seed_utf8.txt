@@ -1,0 +1,88 @@
+﻿INSERT 0 4
+INSERT 0 5
+INSERT 0 8
+psql.exe : psql:database/seed.sql:48: ERROR:  duplicate key value 
+violates unique constraint "users_email_key"
+At line:1 char:30
++ ... BARI@8114'; & "C:\Program Files\PostgreSQL\18\bin\psql" -U 
+postgres - ...
++                 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (psql:database/s...sers_ema 
+   il_key":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+DETAIL:  Key (email)=(john@example.com) already exists.
+INSERT 0 4
+psql:database/seed.sql:66: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(1) is not present in table "users".
+psql:database/seed.sql:70: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(4) is not present in table "users".
+psql:database/seed.sql:74: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(7) is not present in table "users".
+psql:database/seed.sql:78: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(8) is not present in table "users".
+psql:database/seed.sql:82: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(1) is not present in table "users".
+psql:database/seed.sql:86: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(4) is not present in table "users".
+psql:database/seed.sql:90: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(8) is not present in table "users".
+psql:database/seed.sql:94: ERROR:  insert or update on table 
+"incidents" violates foreign key constraint "incidents_reported_by_fkey"
+DETAIL:  Key (reported_by)=(3) is not present in table "users".
+psql:database/seed.sql:106: ERROR:  insert or update on table 
+"incident_status_history" violates foreign key constraint 
+"incident_status_history_incident_id_fkey"
+DETAIL:  Key (incident_id)=(1) is not present in table "incidents".
+psql:database/seed.sql:118: ERROR:  insert or update on table 
+"incident_assignments" violates foreign key constraint 
+"incident_assignments_incident_id_fkey"
+DETAIL:  Key (incident_id)=(1) is not present in table "incidents".
+psql:database/seed.sql:128: ERROR:  insert or update on table 
+"incident_comments" violates foreign key constraint 
+"incident_comments_incident_id_fkey"
+DETAIL:  Key (incident_id)=(1) is not present in table "incidents".
+psql:database/seed.sql:134: ERROR:  insert or update on table 
+"incident_comments" violates foreign key constraint 
+"incident_comments_incident_id_fkey"
+DETAIL:  Key (incident_id)=(1) is not present in table "incidents".
+psql:database/seed.sql:140: ERROR:  insert or update on table 
+"incident_comments" violates foreign key constraint 
+"incident_comments_incident_id_fkey"
+DETAIL:  Key (incident_id)=(3) is not present in table "incidents".
+psql:database/seed.sql:147: ERROR:  insert or update on table 
+"incident_comments" violates foreign key constraint 
+"incident_comments_incident_id_fkey"
+DETAIL:  Key (incident_id)=(5) is not present in table "incidents".
+psql:database/seed.sql:152: ERROR:  insert or update on table 
+"incident_comments" violates foreign key constraint 
+"incident_comments_incident_id_fkey"
+DETAIL:  Key (incident_id)=(8) is not present in table "incidents".
+psql:database/seed.sql:161: ERROR:  insert or update on table 
+"incident_photos" violates foreign key constraint 
+"incident_photos_incident_id_fkey"
+DETAIL:  Key (incident_id)=(3) is not present in table "incidents".
+psql:database/seed.sql:172: ERROR:  insert or update on table 
+"notifications" violates foreign key constraint 
+"notifications_user_id_fkey"
+DETAIL:  Key (user_id)=(1) is not present in table "users".
+psql:database/seed.sql:182: ERROR:  insert or update on table 
+"incident_analytics" violates foreign key constraint 
+"incident_analytics_type_id_fkey"
+DETAIL:  Key (type_id)=(3) is not present in table "incident_types".
+psql:database/seed.sql:191: ERROR:  insert or update on table 
+"forum_thread" violates foreign key constraint 
+"forum_thread_user_id_fkey"
+DETAIL:  Key (user_id)=(1) is not present in table "users".
+psql:database/seed.sql:200: ERROR:  insert or update on table 
+"forum_posts" violates foreign key constraint 
+"forum_posts_thread_id_fkey"
+DETAIL:  Key (thread_id)=(1) is not present in table "forum_thread".

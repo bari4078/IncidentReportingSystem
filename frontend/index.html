@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BUET Incident Reporting System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #f8f9fa;
@@ -17,10 +22,10 @@
 
         /* ===== HEADER & NAV ===== */
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0623a9 0%, #040450 100%);
             color: white;
             padding: 15px 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -40,7 +45,10 @@
             letter-spacing: -0.5px;
         }
 
-        header p { opacity: 0.9; font-size: 13px; }
+        header p {
+            opacity: 0.9;
+            font-size: 13px;
+        }
 
         .user-info {
             display: flex;
@@ -49,7 +57,7 @@
         }
 
         .user-badge {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 8px 16px;
             border-radius: 25px;
             font-size: 12px;
@@ -59,8 +67,8 @@
         }
 
         .logout-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
             padding: 8px 18px;
             border-radius: 6px;
@@ -71,13 +79,13 @@
         }
 
         .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             border-color: white;
         }
 
         .dark-mode-toggle {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -88,7 +96,7 @@
         }
 
         .dark-mode-toggle:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             border-color: white;
         }
 
@@ -158,7 +166,7 @@
 
         .dark-mode .form-section {
             background: #2d2d44;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
         }
 
         .dark-mode #map,
@@ -192,22 +200,163 @@
             border: 1px solid #505070;
         }
 
-        nav button {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.2);
+        /* ===== SIDEBAR & NAVIGATION ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 320px;
+            height: 100vh;
+            background: rgba(4, 4, 80, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 2001;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 40px 20px;
+            box-shadow: 20px 0 50px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            margin-bottom: 40px;
+            padding: 0 10px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            margin-bottom: 12px;
+            border-radius: 12px;
+            transition: all 0.3s;
             cursor: pointer;
-            font-size: 13px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
             font-weight: 600;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(8px);
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-item i {
+            font-size: 18px;
+        }
+
+        /* Backdrop Blur Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Hamburger Menu Icon */
+        .hamburger {
+            cursor: pointer;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+
+        .account-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(23, 46, 80, 0.05);
+            border: 1px solid rgba(23, 46, 80, 0.1);
+            padding: 6px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .account-btn:hover {
+            background: #172e50;
+            border-color: #172e50;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(23, 46, 80, 0.2);
+        }
+
+        .account-btn:hover #userName {
+            color: white;
+        }
+
+        .btn-details {
+            min-width: 130px;
+            padding: 10px 18px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-details:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
             transition: all 0.3s;
         }
 
-        nav button:hover, nav button.active {
-            background: rgba(255,255,255,0.25);
-            border-color: rgba(255,255,255,0.4);
-            transform: translateY(-1px);
+        .hamburger:hover span {
+            background: #667eea;
+        }
+
+        /* Nav container used for layout */
+        nav {
+            display: none;
+            /* Old nav removed */
         }
 
         /* ===== MAIN CONTAINER ===== */
@@ -227,8 +376,15 @@
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* ===== SECTION HEADERS ===== */
@@ -261,21 +417,21 @@
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             text-align: center;
             transition: all 0.3s;
             border: 1px solid #f0f0f0;
         }
 
         .stat-card:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
             transform: translateY(-3px);
         }
 
         .stat-card .number {
             font-size: 42px;
             font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #0c034f 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -283,7 +439,7 @@
         }
 
         .stat-card .label {
-            color: #7f8c8d;
+            color: #1f0753;
             font-size: 14px;
             font-weight: 500;
         }
@@ -300,14 +456,14 @@
             background: white;
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             border: 1px solid #f0f0f0;
             overflow: hidden;
         }
 
         .card:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
             transform: translateY(-5px);
         }
 
@@ -337,13 +493,40 @@
             letter-spacing: 0.3px;
         }
 
-        .badge.low { background: #d4edda; color: #155724; }
-        .badge.medium { background: #fff3cd; color: #856404; }
-        .badge.high { background: #f8d7da; color: #721c24; }
-        .badge.critical { background: #f5c6cb; color: #721c24; }
-        .badge.admin { background: #cfe2ff; color: #084298; }
-        .badge.analyst { background: #e2e3e5; color: #383d41; }
-        .badge.user { background: #d1e7dd; color: #0f5132; }
+        .badge.low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge.critical {
+            background: #f5c6cb;
+            color: #721c24;
+        }
+
+        .badge.admin {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .badge.analyst {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .badge.user {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
 
         /* ===== FORMS ===== */
         .form-group {
@@ -417,7 +600,7 @@
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             margin-bottom: 25px;
         }
 
@@ -468,9 +651,10 @@
         }
 
         /* ===== MAPS ===== */
-        #map, #reportMap {
+        #map,
+        #reportMap {
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         #map {
@@ -488,7 +672,7 @@
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             margin-bottom: 30px;
         }
 
@@ -517,7 +701,7 @@
             padding: 30px;
             border-radius: 12px;
             max-width: 800px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
         .form-row {
@@ -530,7 +714,7 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
-            
+
             .grid {
                 grid-template-columns: 1fr;
             }
@@ -555,24 +739,75 @@
         }
     </style>
 </head>
+
 <body>
+    <!-- Sidebar Navigation -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>BUET SAFETY</h2>
+            <p
+                style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px; margin-top: 5px;">
+                Campus Portal</p>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item" id="navPublicForum" onclick="showSection('publicForum', event)">
+                <span>🏛️</span> Public Forum
+            </div>
+            <div class="menu-item" id="navPublicIncidents" onclick="showSection('incidentsList', event)">
+                <span>📢</span> Public Incidents
+            </div>
+            <div class="menu-item" id="navMyIncidents" onclick="showSection('userDashboard', event)">
+                <span>📋</span> My Incidents
+            </div>
+            <div class="menu-item" id="navReport" onclick="showSection('reportIncident', event)">
+                <span>➕</span> Report Incident
+            </div>
+        </div>
+        <div style="padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div class="logout-btn" style="text-align: center; width: 100%;" onclick="logout()">Logout</div>
+        </div>
+    </div>
+
     <header>
         <div class="header-content">
-            <div>
-                <h1>🚨 BUET Incident Hub</h1>
-                <p>Campus Safety & Incident Management</p>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="hamburger" id="hamburgerMenu" onclick="openSidebar()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div>
+                    <h1>BUET Incident Reporting</h1>
+                    <p>Building a safer campus community</p>
+                </div>
             </div>
             <div class="user-info">
-                <span id="userName" style="font-weight: 600;"></span>
-                <span class="user-badge" id="userRole"></span>
-                <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+                <button id="darkModeToggle" class="dark-mode-toggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+                <div id="userAccountBtn" class="account-btn" onclick="showSection('userProfile')">
+                    <div id="userName" style="font-weight: 600; font-size: 14px; transition: color 0.3s;">Student Name
+                    </div>
+                </div>
             </div>
         </div>
         <nav id="navigationMenu"></nav>
     </header>
 
     <div class="container">
+        <!-- PUBLIC FORUM (Starting Page) -->
+        <div id="publicForum" class="section">
+            <div class="section-header">
+                <h2>Public Forum</h2>
+                <p>Discuss campus safety and share feedback with the community</p>
+            </div>
+            <div
+                style="text-align: center; padding: 100px 20px; background: white; border-radius: 20px; border: 2px dashed #e2e8f0; color: #64748b;">
+                <div style="font-size: 50px; margin-bottom: 20px;">🏗️</div>
+                <h3 style="color: #1e293b; margin-bottom: 10px;">Forum Discussion System</h3>
+                <p>This section is currently under development. Stay tuned!</p>
+            </div>
+        </div>
+
         <!-- ADMIN DASHBOARD -->
         <div id="adminDashboard" class="section">
             <div class="section-header">
@@ -580,8 +815,10 @@
                 <p>Real-time overview of critical incidents and campus operations</p>
             </div>
             <div class="stats-grid" id="adminStats"></div>
-            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 20px; font-weight: 700;">Critical & High Severity Incidents</h3>
+            <div
+                style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 20px; font-weight: 700;">Critical & High
+                    Severity Incidents</h3>
                 <table class="table" id="adminIncidents">
                     <thead>
                         <tr>
@@ -605,12 +842,15 @@
                 <p>Hotspots, trends, and incident analytics for BUET campus</p>
             </div>
             <div class="map-container">
-                <h3 style="color: #2c3e50; margin-bottom: 15px; font-weight: 700;">🗺️ Incident Hotspots - BUET Campus</h3>
+                <h3 style="color: #2c3e50; margin-bottom: 15px; font-weight: 700;">🗺️ Incident Hotspots - BUET Campus
+                </h3>
                 <div id="map"></div>
             </div>
             <div class="stats-grid" id="analystStats"></div>
-            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 30px;">
-                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 18px; font-weight: 700;">Risk Areas by Location</h3>
+            <div
+                style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 30px;">
+                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 18px; font-weight: 700;">Risk Areas by
+                    Location</h3>
                 <table class="table" id="hotspotsTable">
                     <thead>
                         <tr>
@@ -623,8 +863,10 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 18px; font-weight: 700;">Statistics by Incident Type</h3>
+            <div
+                style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 18px; font-weight: 700;">Statistics by
+                    Incident Type</h3>
                 <table class="table" id="typeStatsTable">
                     <thead>
                         <tr>
@@ -643,71 +885,191 @@
         <div id="userDashboard" class="section">
             <div class="section-header">
                 <h2>My Incidents</h2>
-                <p>View and manage your reported incidents</p>
+                <p>View the incidents you have reported</p>
             </div>
-            <button class="btn btn-primary" onclick="showSection('reportIncident')" style="margin-bottom: 30px;">+ Report New Incident</button>
             <div id="userIncidents" class="grid"></div>
         </div>
 
         <!-- REPORT INCIDENT -->
         <div id="reportIncident" class="section">
-            <div class="section-header">
-                <h2>Report New Incident</h2>
-                <p>Help us keep the BUET campus safe. Report incidents with location details</p>
-            </div>
-            <div class="form-section">
-                <div id="reportAlert"></div>
-                <form id="incidentForm">
-                    <div class="form-row">
-                        <div>
-                            <div class="form-group">
-                                <label for="incident_type">Incident Type *</label>
-                                <select id="incident_type" required onchange="updateDefaultSeverity()">
-                                    <option value="">Choose type...</option>
-                                    <option value="1">Theft / Lost Items</option>
-                                    <option value="2">Harassment</option>
-                                    <option value="3">Maintenance Issue</option>
-                                    <option value="4">Medical Emergency</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="location_id">Location *</label>
-                                <select id="location_id" required onchange="showLocationMap()"></select>
-                            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; min-height: 650px;">
+                <!-- Left: Form Section -->
+                <div class="form-section" style="max-width: none; flex: 1; display: flex; flex-direction: column;">
+                    <div class="section-header">
+                        <h2>Report New Incident</h2>
+                        <p>Help us keep the BUET campus safe. Report incidents with location details</p>
+                    </div>
+                    <div id="reportAlert"></div>
+                    <form id="incidentForm" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                        <div class="form-group">
+                            <label for="incident_type">Incident Type *</label>
+                            <select id="incident_type" required onchange="updateDefaultSeverity()" style="width: 100%;">
+                                <option value="">Choose type...</option>
+                                <option value="1">Theft / Lost Items</option>
+                                <option value="2">Harassment</option>
+                                <option value="3">Maintenance Issue</option>
+                                <option value="4">Medical Emergency</option>
+                            </select>
                         </div>
-                        <div id="locationMapContainer" style="display: none;">
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">📍 Location on Map</label>
-                            <div id="reportMap"></div>
+                        <div class="form-group">
+                            <label for="location_id">Location *</label>
+                            <select id="location_id" required onchange="showLocationMap()"
+                                style="width: 100%;"></select>
                         </div>
+
+                        <div class="form-group">
+                            <label for="description">Detailed Description *</label>
+                            <textarea id="description" style="flex: 1; min-height: 120px;"
+                                placeholder="Describe what happened, when, and any other relevant details..."
+                                required></textarea>
+                        </div>
+                        <div class="form-group"
+                            style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0;">
+                                <input type="checkbox" id="is_public" checked
+                                    style="width: 20px; height: 20px; cursor: pointer; accent-color: #172e50;">
+                                <span style="margin-left: 12px; font-weight: 700; color: #172e50; font-size: 14px;">Make
+                                    Report Publicly Visible</span>
+                            </label>
+                            <p
+                                style="font-size: 12px; color: #64748b; margin-top: 8px; margin-left: 32px; line-height: 1.4;">
+                                When checked, other members of the BUET community can view this report. Uncheck for
+                                confidential/private reporting.</p>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-top: auto; padding-top: 10px;">
+                            <button type="submit" class="btn btn-primary" style="flex: 1;">Report Incident</button>
+                            <button type="button" class="btn" onclick="showSection('userDashboard')"
+                                style="background: #ecf0f1; color: #2c3e50; flex: 1;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Right: Persistent Map Section -->
+                <div id="reportMapContainer"
+                    style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); position: relative; border: 1px solid #eef0f5;">
+                    <div id="reportMap" style="width: 100%; height: 100%; min-height: 400px; z-index: 1;"></div>
+                    <div style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
+                        <div
+                            style="background: white; padding: 8px 15px; border-radius: 8px; font-weight: 800; color: #172e50; font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eef0f5; letter-spacing: 0.5px;">
+                            CAMPUS LIVE MAP</div>
                     </div>
-                    <div class="form-group">
-                        <label for="severity_id">Severity Level *</label>
-                        <select id="severity_id" required>
-                            <option value="">Choose severity...</option>
-                            <option value="1">Low</option>
-                            <option value="2">Medium</option>
-                            <option value="3">High</option>
-                            <option value="4">Critical</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="description">Detailed Description *</label>
-                        <textarea id="description" placeholder="Describe what happened, when, and any other relevant details..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="is_public" checked> 
-                            <span style="margin-left: 8px;">Make Public Report</span>
-                        </label>
-                        <p style="font-size: 12px; color: #7f8c8d; margin-top: 6px;">Uncheck for anonymous/private reporting</p>
-                    </div>
-                    <div style="display: flex; gap: 12px;">
-                        <button type="submit" class="btn btn-primary">Report Incident</button>
-                        <button type="button" class="btn" onclick="showSection('userDashboard')" style="background: #ecf0f1; color: #2c3e50;">Cancel</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
+
+
+        <!-- USER PROFILE SECTION -->
+        <div id="userProfile" class="section">
+            <div class="section-header"
+                style="background: #172e50; padding: 40px; border-radius: 20px; color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 25px;">
+                    <div
+                        style="width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; border: 2px solid rgba(255,255,255,0.3);">
+                        👤</div>
+                    <div>
+                        <h2 id="profileHeaderName" style="color: white; margin: 0; font-size: 28px; font-weight: 800;">
+                            User Account</h2>
+                        <p style="color: rgba(255,255,255,0.7); margin-top: 5px; font-size: 15px;">Manage your profile
+                            and track reporting performance</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 350px 1fr; gap: 30px;">
+                <!-- Left: Account Details -->
+                <div
+                    style="background: white; padding: 35px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid #edf2f7; display: flex; flex-direction: column;">
+                    <h3
+                        style="color: #1a202c; margin-bottom: 25px; font-size: 18px; border-bottom: 2px solid #f7fafc; padding-bottom: 12px;">
+                        Registration Details</h3>
+
+                    <div style="display: flex; flex-direction: column; gap: 20px; flex: 1;">
+                        <div
+                            style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7;">
+                            <label
+                                style="display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #a0aec0; letter-spacing: 1px; margin-bottom: 5px;">Full
+                                Name</label>
+                            <div id="profileName" style="color: #2d3748; font-weight: 700; font-size: 16px;">...</div>
+                        </div>
+                        <div
+                            style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7;">
+                            <label
+                                style="display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #a0aec0; letter-spacing: 1px; margin-bottom: 5px;">Email
+                                Address</label>
+                            <div id="profileEmail" style="color: #2d3748; font-weight: 600;">...</div>
+                        </div>
+                        <div
+                            style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7;">
+                            <label
+                                style="display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #a0aec0; letter-spacing: 1px; margin-bottom: 5px;">System
+                                Role</label>
+                            <div id="profileRole" style="display: inline-block;" class="user-badge">...</div>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="logout()"
+                        style="margin-top: 30px; width: 100%; border: 1px solid #fc8181; color: #e53e3e; background: #fff5f5; padding: 12px; font-weight: 700;">Sign
+                        Out</button>
+                </div>
+
+                <!-- Right: Analysis -->
+                <div style="display: flex; flex-direction: column; gap: 25px;">
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 0;">
+                        <div class="stat-card"
+                            style="border-left: 5px solid #667eea; background: white; padding: 30px;">
+                            <div id="statReported" class="number" style="color: #667eea; font-size: 42px;">0</div>
+                            <div class="label" style="font-weight: 700; color: #4a5568;">Total Incidents Reported</div>
+                        </div>
+                        <div class="stat-card"
+                            style="border-left: 5px solid #48bb78; background: white; padding: 30px;">
+                            <div id="statResolved" class="number" style="color: #48bb78; font-size: 42px;">0</div>
+                            <div class="label" style="font-weight: 700; color: #4a5568;">Successfully Resolved</div>
+                        </div>
+                        <div class="stat-card"
+                            style="border-left: 5px solid #ed8936; background: white; padding: 30px;">
+                            <div id="statInReview" class="number" style="color: #ed8936; font-size: 42px;">0</div>
+                            <div class="label" style="font-weight: 700; color: #4a5568;">Currently In Review</div>
+                        </div>
+                        <div class="stat-card"
+                            style="border-left: 5px solid #805ad5; background: white; padding: 30px;">
+                            <div id="statEfficiency" class="number" style="color: #805ad5; font-size: 42px;">0%</div>
+                            <div class="label" style="font-weight: 700; color: #4a5568;">Resolution Efficiency</div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #ebf4ff; padding: 25px; border-radius: 20px; border: 1px solid #bee3f8; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="color: #2b6cb0; margin: 0 0 5px 0;">Done reviewing your activity?</h4>
+                            <p style="color: #4299e1; margin: 0; font-size: 14px;">Return to your main dashboard to
+                                browse more incidents.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showSection(lastSection)"
+                            style="padding: 15px 30px; min-width: 250px; font-weight: 800; font-size: 16px;">Back to
+                            Dashboard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INCIDENT DETAILS VIEW -->
+        <div id="viewIncidentDetails" class="section">
+            <div class="section-header"
+                style="background: #172e50; padding: 30px; border-radius: 16px; color: white; margin-bottom: 25px;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <button class="btn" onclick="showSection(lastSection)"
+                        style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 15px; font-size: 13px; font-weight: 600; border-radius: 8px;">←
+                        Back to Dashboard</button>
+                    <h2 style="color: white; margin: 0; font-size: 24px; font-weight: 700;">Incident Information</h2>
+                </div>
+            </div>
+
+            <div id="detailsContent" style="padding: 10px;">
+                <!-- Content populated by JS -->
+            </div>
+        </div>
+
 
         <!-- ALL INCIDENTS -->
         <div id="incidentsList" class="section">
@@ -741,6 +1103,27 @@
         let currentUser = null;
         let mainMap = null;
         let reportMap = null;
+        let lastSection = 'publicForum'; // Track previous context for 'Back' button
+        const globalMaps = {}; // Registry for tracking Leaflet instances to prevent re-init crashes
+
+        function cleanupMap(elementId) {
+            if (globalMaps[elementId]) {
+                globalMaps[elementId].remove();
+                delete globalMaps[elementId];
+            }
+            // Also check if Leaflet already attached an ID to the element
+            const container = document.getElementById(elementId);
+            if (container && container._leaflet_id) {
+                // This is a backup if the registry missed it
+                const existingMap = L.DomUtil.get(elementId);
+                if (existingMap && existingMap._leaflet_id) {
+                    // Try to find the map object from the container if not in registry
+                    // Note: Leaflet doesn't store the map object on the DOM easily, 
+                    // so registry is the primary way.
+                }
+            }
+        }
+
 
         // BUET Campus Boundaries (based on actual BUET location 23.7267°N, 90.3927°E)
         const BUET_BOUNDS = {
@@ -850,92 +1233,265 @@
             window.location.href = 'login.html';
         }
 
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
         function setupUI() {
             document.getElementById('userName').textContent = currentUser.name;
-            document.getElementById('userRole').textContent = currentUser.role.toUpperCase();
-            document.getElementById('userRole').classList.add('user-badge', currentUser.role.toLowerCase());
+            const roleEl = document.getElementById('userRole');
+            if (roleEl) {
+                roleEl.textContent = currentUser.role.toUpperCase();
+                roleEl.classList.add('user-badge', currentUser.role.toLowerCase());
+            }
 
-            const navMenu = document.getElementById('navigationMenu');
-            navMenu.innerHTML = '';
-
+            // Default landing based on role
             if (currentUser.role === 'Admin') {
-                navMenu.innerHTML = '<button class="nav-btn active" onclick="showSection(\'adminDashboard\', event)">Admin Dashboard</button><button class="nav-btn" onclick="showSection(\'incidentsList\', event)">All Incidents</button>';
                 showSection('adminDashboard');
-                loadAdminDashboard();
             } else if (currentUser.role === 'Analyst') {
-                navMenu.innerHTML = '<button class="nav-btn active" onclick="showSection(\'analystDashboard\', event)">Analytics</button><button class="nav-btn" onclick="showSection(\'incidentsList\', event)">All Incidents</button>';
                 showSection('analystDashboard');
-                loadAnalystDashboard();
             } else {
-                navMenu.innerHTML = '<button class="nav-btn active" onclick="showSection(\'userDashboard\', event)">My Incidents</button><button class="nav-btn" onclick="showSection(\'reportIncident\', event)">Report</button>';
-                showSection('userDashboard');
-                loadUserDashboard();
+                showSection('publicForum');
             }
         }
 
         function showSection(sectionId, evt) {
+            // Track history for 'Back' button
+            // Neither 'viewIncidentDetails' nor 'userProfile' should overwrite lastSection —
+            // they are overlay-style views; we want to remember the real dashboard behind them.
+            const OVERLAY_SECTIONS = ['viewIncidentDetails', 'userProfile'];
+            const activeSection = document.querySelector('.section.active');
+            if (activeSection && !OVERLAY_SECTIONS.includes(activeSection.id) && OVERLAY_SECTIONS.includes(sectionId)) {
+                // Entering an overlay: capture where we came from
+                lastSection = activeSection.id;
+            } else if (!OVERLAY_SECTIONS.includes(sectionId)) {
+                // Normal navigation: the target becomes the new 'home'
+                lastSection = sectionId;
+            }
+            // If navigating from one overlay to another (or staying in overlay), lastSection is unchanged.
+
+            // Hide all sections
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            // highlight clicked nav button if event provided
-            if (evt && evt.currentTarget) {
-                evt.currentTarget.classList.add('active');
+
+            // Show target section
+            const target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
+            // Update sidebar active selection
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            const navMap = {
+                'publicForum': 'navPublicForum',
+                'incidentsList': 'navPublicIncidents',
+                'userDashboard': 'navMyIncidents',
+                'reportIncident': 'navReport',
+                'userProfile': 'navProfile'
+            };
+            const navId = navMap[sectionId];
+            if (navId) {
+                const navEl = document.getElementById(navId);
+                if (navEl) navEl.classList.add('active');
+            }
+
+            // Close sidebar automatically after selection
+            closeSidebar();
+
+            // Load specific data
             if (sectionId === 'adminDashboard') loadAdminDashboard();
             if (sectionId === 'analystDashboard') loadAnalystDashboard();
             if (sectionId === 'userDashboard') loadUserDashboard();
-            if (sectionId === 'incidentsList') loadAllIncidents();
+            if (sectionId === 'incidentsList') loadAllIncidents(currentUser.role === 'User');
+            if (sectionId === 'reportIncident') initializeReportMap();
+            if (sectionId === 'userProfile') loadUserProfile();
         }
 
+
+
+
+        async function viewIncident(incidentId) {
+            try {
+                showSection('viewIncidentDetails');
+                const detailsContainer = document.getElementById('detailsContent');
+                detailsContainer.innerHTML = `<div style="text-align: center; padding: 60px;"><div class="spinner"></div><p style="margin-top: 15px; color: #666;">Retrieving incident report #${incidentId}...</p></div>`;
+
+                const i = await apiFetch(`/incidents/${incidentId}`).then(r => r.json());
+                if (!i || !i.incident_id) throw new Error("Incident not found");
+
+                const loc = BUET_LOCATIONS[i.location_id] || { name: i.location_name || 'Unknown', building: 'Unknown', icon: '📍', lat: 23.7267, lng: 90.3925 };
+
+                // Robust Date Parsing for Submission Time (using Reported_time from DB)
+                const postDate = i.reported_time ? new Date(i.reported_time) : new Date();
+                const dateStr = postDate.toLocaleDateString(undefined, { dateStyle: 'medium' });
+                const timeStr = postDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                detailsContainer.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; max-width: 100%; overflow: hidden;">
+                        <!-- Left Column: Information & Description -->
+                        <div style="display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
+                            <!-- Header Info Card -->
+                            <div style="background: #172e50; padding: 25px; border-radius: 16px; color: white; box-shadow: 0 10px 25px rgba(23,46,80,0.15);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                                    <div>
+                                        <div style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;">Incident Report</div>
+                                        <h3 style="margin: 0; font-size: 24px; font-weight: 800; color: white; letter-spacing: -0.5px;">#${i.incident_id} - ${i.type_name}</h3>
+                                    </div>
+                                    <span class="badge" style="background: white; color: #172e50; border: none; font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 50px;">${i.status_name}</span>
+                                </div>
+                                <div style="height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 20px;"></div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                     <div>
+                                        <div style="color: rgba(255,255,255,0.4); font-size: 10px; margin-bottom: 4px; text-transform: uppercase;">Submitted By</div>
+                                        <div style="font-size: 15px; font-weight: 600;">${i.reported_by_name || 'Anonymous Student'}</div>
+                                    </div>
+                                    <div>
+                                        <div style="color: rgba(255,255,255,0.4); font-size: 10px; margin-bottom: 4px; text-transform: uppercase;">Submission Time</div>
+                                        <div style="font-size: 14px; font-weight: 600;">${dateStr} at ${timeStr}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detailed Description Card -->
+                            <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #eef0f5; box-shadow: 0 4px 15px rgba(0,0,0,0.02); overflow-wrap: break-word;">
+                                <h4 style="margin: 0 0 15px 0; font-size: 12px; color: #172e50; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                    Report Details
+                                </h4>
+                                <div style="height: 2px; width: 30px; background: #172e50; margin-bottom: 15px; border-radius: 2px;"></div>
+                                <p style="margin: 0; font-size: 16px; line-height: 1.7; color: #333; white-space: pre-wrap; font-family: inherit;">${i.description || 'No detailed description provided.'}</p>
+                            </div>
+
+                             <!-- Additional Context Card -->
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; gap: 20px;">
+                                <div style="flex: 1;">
+                                    <small style="color: #64748b; font-weight: 700; font-size: 10px; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">PUBLIC VISIBILITY</small>
+                                    <div style="font-size: 14px;">
+                                        ${i.is_public ? '<span style="color: #059669; font-weight: 600;">● Public Record</span>' : '<span style="color: #ef4444; font-weight: 600;">● Confidential / Private</span>'}
+                                    </div>
+                                </div>
+                                <div style="width: 1px; background: #e2e8f0;"></div>
+                                <div style="flex: 1;">
+                                    <small style="color: #64748b; font-weight: 700; font-size: 10px; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">LOCATION & CATEGORY</small>
+                                    <div style="font-size: 14px; font-weight: 600; color: #1e293b;">${loc.icon} ${loc.name} <span style="font-weight: 400; color: #64748b;">[${loc.category}]</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Map -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="background: white; border-radius: 20px; overflow: hidden; border: 1px solid #eef0f5; box-shadow: 0 15px 35px rgba(23,46,80,0.1); position: relative; height: 100%; min-height: 450px;">
+                                <div id="detailsMap" style="width: 100%; height: 100%;"></div>
+                                <div style="position: absolute; top: 15px; right: 15px; z-index: 1000;">
+                                     <div style="background: white; padding: 6px 12px; border-radius: 6px; font-weight: 700; color: #172e50; font-size: 11px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">LIVE COORDINATES</div>
+                                </div>
+                                <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(transparent, rgba(23,46,80,0.95)); color: white; pointer-events: none;">
+                                    <div style="font-weight: 800; font-size: 16px; margin-bottom: 2px;">${loc.name}</div>
+                                    <div style="font-size: 13px; opacity: 0.8;">${loc.building}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Initialize map with cleanup
+                setTimeout(() => {
+                    cleanupMap('detailsMap');
+                    const dMap = L.map('detailsMap', { zoomControl: false, scrollWheelZoom: false }).setView([loc.lat, loc.lng], 18);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dMap);
+
+                    const pIcon = L.divIcon({
+                        html: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+                        className: 'custom-pin-details',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40]
+                    });
+                    L.marker([loc.lat, loc.lng], { icon: pIcon }).addTo(dMap);
+                    globalMaps['detailsMap'] = dMap;
+                }, 250);
+
+            } catch (err) {
+                console.error('Error loading details:', err);
+                document.getElementById('detailsContent').innerHTML = `
+                    <div style="text-align: center; padding: 80px; background: #fff5f5; border-radius: 24px; border: 2px dashed #feb2b2; max-width: 600px; margin: 0 auto;">
+                        <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+                        <h4 style="color: #c53030; margin: 0 0 10px 0; font-size: 20px;">System Error</h4>
+                        <p style="color: #9b2c2c; margin-bottom: 25px; line-height: 1.6;">${err.message || 'We could not retrieve the requested incident details at this moment.'}</p>
+                        <button class="btn btn-primary" onclick="showSection('userDashboard')">Return to Dashboard</button>
+                    </div>
+                `;
+            }
+        }
+
+
+
+
+
+        // Map Functions
         // Map Functions
         function initializeAnalyticsMap() {
-            if (mainMap) return;
+            cleanupMap('map');
             setTimeout(() => {
-                mainMap = L.map('map').setView([23.7267, 90.3925], 17);
+                const map = L.map('map').setView([23.7267, 90.3925], 16);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors', maxZoom: 19
-                }).addTo(mainMap);
-                
-                // Restrict map bounds to BUET campus
+                }).addTo(map);
+
                 const bounds = L.latLngBounds(
                     [BUET_BOUNDS.south, BUET_BOUNDS.west],
                     [BUET_BOUNDS.north, BUET_BOUNDS.east]
                 );
-                mainMap.setMaxBounds(bounds);
-                mainMap.on('drag', () => mainMap.panInsideBounds(bounds, { animate: false }));
-                
+                map.setMaxBounds(bounds);
+                map.on('drag', () => map.panInsideBounds(bounds, { animate: false }));
+
+                globalMaps['map'] = map;
                 loadIncidentMarkers();
             }, 100);
         }
 
+
         function initializeReportMap() {
-            if (reportMap) return;
+            cleanupMap('reportMap');
             setTimeout(() => {
-                reportMap = L.map('reportMap').setView([23.7267, 90.3925], 17);
+                const el = document.getElementById('reportMap');
+                if (!el) return;
+                const rMap = L.map('reportMap', { zoomControl: false }).setView([23.7267, 90.3925], 16);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors', maxZoom: 19
-                }).addTo(reportMap);
-                
-                // Restrict map bounds to BUET campus
+                }).addTo(rMap);
+
                 const bounds = L.latLngBounds(
                     [BUET_BOUNDS.south, BUET_BOUNDS.west],
                     [BUET_BOUNDS.north, BUET_BOUNDS.east]
                 );
-                reportMap.setMaxBounds(bounds);
-                reportMap.on('drag', () => reportMap.panInsideBounds(bounds, { animate: false }));
+                rMap.setMaxBounds(bounds);
+                rMap.on('drag', () => rMap.panInsideBounds(bounds, { animate: false }));
+
+                globalMaps['reportMap'] = rMap;
             }, 100);
         }
 
+
+
         async function loadIncidentMarkers() {
-            if (!mainMap) return;
+            if (!globalMaps['map']) return;
+            const map = globalMaps['map'];
             try {
                 const incidents = await apiFetch('/incidents').then(r => r.json()).catch(e => { console.error('Error:', e); return []; });
                 incidents.forEach(incident => {
                     if (incident.location_id && BUET_LOCATIONS[incident.location_id]) {
                         const loc = BUET_LOCATIONS[incident.location_id];
                         let color, status;
-                        
+
                         if (incident.severity_id === 4) {
                             color = '#ff6b6b';
                             status = '🔴 CRITICAL';
@@ -954,8 +1510,8 @@
                             weight: 2,
                             opacity: 1,
                             fillOpacity: 0.85
-                        }).addTo(mainMap);
-                        
+                        }).addTo(map);
+
                         marker.bindPopup(`
                             <div style="font-size: 12px; min-width: 200px;">
                                 <strong style="color: ${color}; font-size: 14px;">${status}</strong><br>
@@ -972,41 +1528,51 @@
             }
         }
 
+
         function showLocationMap() {
             const locationId = document.getElementById('location_id').value;
-            if (!locationId) {
-                document.getElementById('locationMapContainer').style.display = 'none';
-                return;
+            if (!locationId) return;
+
+            const rMap = globalMaps['reportMap'];
+            if (!rMap) {
+                initializeReportMap();
+                setTimeout(() => addReportMarker(locationId), 250);
+            } else {
+                rMap.invalidateSize();
+                addReportMarker(locationId);
             }
-            document.getElementById('locationMapContainer').style.display = 'block';
-            setTimeout(() => {
-                if (!reportMap) initializeReportMap();
-                else reportMap.invalidateSize();
-                const loc = BUET_LOCATIONS[locationId];
-                if (loc) {
-                    reportMap.setView([loc.lat, loc.lng], 18);
-                    reportMap.eachLayer(layer => {
-                        if (layer instanceof L.Marker || layer instanceof L.CircleMarker) reportMap.removeLayer(layer);
-                    });
-                    L.circleMarker([loc.lat, loc.lng], {
-                        radius: 12, fillColor: '#667eea', color: '#333', weight: 2, opacity: 1, fillOpacity: 0.9
-                    }).addTo(reportMap).bindPopup(`
-                        <div style="font-size: 13px;">
-                            <strong style="color: #667eea;">${loc.icon} ${loc.name}</strong><br>
-                            <small>🏛️ <strong>Building:</strong> ${loc.building}</small><br>
-                            <small>📋 <strong>Category:</strong> ${loc.category}</small><br>
-                            <small>🗍 <strong>Coordinates:</strong> ${loc.lat.toFixed(4)}°, ${loc.lng.toFixed(4)}°</small>
-                        </div>
-                    `, { maxWidth: 250 }).openPopup();
-                }
-            }, 50);
         }
 
-        function panToLocation(locationId) {
-            if (!mainMap) return;
+
+        function addReportMarker(locationId) {
+            const rMap = globalMaps['reportMap'];
+            if (!rMap) return;
             const loc = BUET_LOCATIONS[locationId];
-            if (loc) mainMap.setView([loc.lat, loc.lng], 18);
+            if (loc) {
+                rMap.setView([loc.lat, loc.lng], 18);
+                rMap.eachLayer(layer => {
+                    if (layer instanceof L.Marker || layer instanceof L.CircleMarker) rMap.removeLayer(layer);
+                });
+                L.circleMarker([loc.lat, loc.lng], {
+                    radius: 12, fillColor: '#667eea', color: '#333', weight: 2, opacity: 1, fillOpacity: 0.9
+                }).addTo(rMap).bindPopup(`
+                    <div style="font-size: 13px;">
+                        <strong style="color: #667eea;">${loc.icon} ${loc.name}</strong><br>
+                        <small>🏛️ <strong>Building:</strong> ${loc.building}</small><br>
+                        <small>📋 <strong>Category:</strong> ${loc.category}</small>
+                    </div>
+                `, { maxWidth: 250 }).openPopup();
+            }
         }
+
+
+        function panToLocation(locationId) {
+            const map = globalMaps['map'];
+            if (!map) return;
+            const loc = BUET_LOCATIONS[locationId];
+            if (loc) map.setView([loc.lat, loc.lng], 18);
+        }
+
 
         // Admin Dashboard
         async function loadAdminDashboard() {
@@ -1018,7 +1584,7 @@
                     apiFetch('/incidents').then(r => r.json()).catch(e => { console.error('Error:', e); return []; }),
                     apiFetch('/incidents').then(r => r.json()).catch(e => { console.error('Error:', e); return []; })
                 ]);
-                
+
                 let incidents = highResponse.filter(i => [3, 4].includes(i.severity_id)) || [];
                 const allIncidents = allResponse || [];
 
@@ -1143,65 +1709,162 @@
         async function loadUserDashboard() {
             try {
                 showLoading('userIncidents');
-        const incidents = await apiFetch('/incidents').then(r => r.json()).catch(e => { console.error('Error:', e); return []; });
+                const incidents = await apiFetch(`/incidents?reported_by=${currentUser.user_id}`).then(r => r.json()).catch(e => { console.error('Error:', e); return []; });
 
-                if (userIncidents.length === 0) {
-                    document.getElementById('userIncidents').innerHTML = '<div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f5f5f5; border-radius: 8px;"><h3 style="color: #667eea; margin-bottom: 10px;">No Incidents Reported Yet</h3><p>You haven\'t reported any incidents. Click "Report New Incident" to get started and help keep campus safe.</p><button class="btn btn-primary" onclick="showSection(\'reportIncident\')" style="margin-top: 15px;">Report Your First Incident</button></div>';
+                if (incidents.length === 0) {
+                    document.getElementById('userIncidents').innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><h3>No incidents reported yet</h3><p>Your reports will appear here once they are submitted.</p></div>';
                     return;
                 }
 
-                document.getElementById('userIncidents').innerHTML = userIncidents.map(i => `
-                    <div class="card" style="border-left: 4px solid ${i.severity_id === 4 ? '#ff6b6b' : i.severity_id === 3 ? '#ffa94d' : '#51cf66'};">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <h3 style="margin: 0 0 10px 0; color: #333;">#${i.incident_id} - ${i.type_name}</h3>
-                                <p style="margin: 5px 0; color: #666;"><strong>📍 Location:</strong> ${i.location_name}</p>
+                document.getElementById('userIncidents').innerHTML = incidents.map(i => {
+                    return `
+                    <div class="card" style="padding: 0; border: none; overflow: hidden; display: flex; flex-direction: column; height: 360px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 12px; position: relative;">
+                        <!-- Top Half: Map Background -->
+                        <div style="height: 160px; position: relative; background: #eee; overflow: hidden;">
+                            <div id="u-map-${i.incident_id}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                            <!-- Overlaid Location Name -->
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.1) 100%); display: flex; align-items: flex-end; padding: 15px; pointer-events: none;">
+                                 <h4 style="color: white; margin: 0; font-size: 16px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">📍 ${i.location_name}</h4>
                             </div>
-                            <span class="badge ${i.severity_name?.toLowerCase()}" style="white-space: nowrap;">${i.severity_name}</span>
                         </div>
-                        <p style="margin: 10px 0; color: #555; line-height: 1.5;">${i.description.substring(0, 100)}${i.description.length > 100 ? '...' : ''}</p>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                            <span class="badge" style="background: #f0f0f0; color: #333;">${i.status_name}</span>
-                            <button class="btn btn-primary btn-small" onclick="viewIncident(${i.incident_id})">View Details →</button>
+                        
+                        <!-- Bottom Half: Incident Details -->
+                        <div style="padding: 15px; display: flex; flex-direction: column; flex: 1; background: #172e50; color: white; overflow: hidden;">
+                            <h3 style="margin: 0 0 8px 0; color: white; font-size: 15px; font-weight: 700;">#${i.incident_id} - ${i.type_name}</h3>
+                            <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.9); font-size: 13px; line-height: 1.4; max-height: 4.2em; flex-grow: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; white-space: normal; word-wrap: break-word;">
+                                ${i.description}
+                            </p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                                <span class="badge" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); margin: 0;">${i.status_name}</span>
+                                <button class="btn-details btn-primary" onclick="viewIncident(${i.incident_id})" style="background: white; color: #172e50;">View Details</button>
+                            </div>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
+
+                // Initialize maps for each card without any UI controls (with cleanup)
+                setTimeout(() => {
+                    incidents.forEach(i => {
+                        const loc = BUET_LOCATIONS[i.location_id];
+                        if (loc) {
+                            const mapId = `u-map-${i.incident_id}`;
+                            const el = document.getElementById(mapId);
+                            if (el) {
+                                cleanupMap(mapId); // Destroy existing map before re-init
+                                const m = L.map(mapId, {
+                                    zoomControl: false,
+                                    attributionControl: false,
+                                    dragging: false,
+                                    boxZoom: false,
+                                    doubleClickZoom: false,
+                                    scrollWheelZoom: false,
+                                    touchZoom: false,
+                                    keyboard: false
+                                }).setView([loc.lat, loc.lng], 16);
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+
+                                const svgPin = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ff4757" width="36" height="36"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`);
+                                const pinIcon = L.icon({
+                                    iconUrl: `data:image/svg+xml;charset=utf-8,${svgPin}`,
+                                    iconSize: [36, 36],
+                                    iconAnchor: [18, 36]
+                                });
+                                L.marker([loc.lat, loc.lng], { icon: pinIcon }).addTo(m);
+                                globalMaps[mapId] = m; // Store in registry
+                            }
+                        }
+                    });
+
+                }, 100);
             } catch (err) {
                 console.error('Error:', err);
                 document.getElementById('userIncidents').innerHTML = '<div style="grid-column: 1/-1; color: red; padding: 20px;">Error loading incidents. Please try again.</div>';
             }
         }
 
+        // User Profile Logic
+        async function loadUserProfile() {
+            try {
+                if (!currentUser) return;
+
+                // Update basic info
+                const headerName = document.getElementById('profileHeaderName');
+                if (headerName) headerName.textContent = currentUser.name.split(' ')[0] + "'s Account";
+
+                const pName = document.getElementById('profileName');
+                if (pName) pName.textContent = currentUser.name;
+
+                const pRole = document.getElementById('profileRole');
+                if (pRole) pRole.textContent = currentUser.role;
+
+                const pEmail = document.getElementById('profileEmail');
+                if (pEmail) pEmail.textContent = currentUser.email;
+
+                // Fetch for stats
+                const response = await apiFetch(`/incidents?reported_by=${currentUser.user_id}`);
+                const incidents = await response.json();
+
+                const reported = incidents.length;
+                const resolved = incidents.filter(i => i.current_status_id === 4).length;
+                const inReview = incidents.filter(i => i.current_status_id === 2).length;
+                const efficiency = reported > 0 ? Math.round((resolved / reported) * 100) : 0;
+
+                const sReported = document.getElementById('statReported');
+                if (sReported) sReported.textContent = reported;
+
+                const sResolved = document.getElementById('statResolved');
+                if (sResolved) sResolved.textContent = resolved;
+
+                const sInReview = document.getElementById('statInReview');
+                if (sInReview) sInReview.textContent = inReview;
+
+                const sEfficiency = document.getElementById('statEfficiency');
+                if (sEfficiency) sEfficiency.textContent = efficiency + '%';
+
+            } catch (err) {
+                console.error('Error loading profile:', err);
+            }
+        }
+
         // All Incidents
-        async function loadAllIncidents() {
+        async function loadAllIncidents(publicOnly = false) {
             try {
                 showLoading('allIncidents');
-                document.getElementById('statsGrid').innerHTML = '<div class="loading" style="grid-column: 1/-1; text-align: center; padding: 40px;"><div class="spinner"></div></div>';
+                const statsEl = document.getElementById('statsGrid');
+                if (statsEl) statsEl.innerHTML = '<div class="loading" style="grid-column: 1/-1; text-align: center; padding: 40px;"><div class="spinner"></div></div>';
 
-                const incidents = await apiFetch('/incidents').then(r => r.json()).catch(e => { console.error('Error:', e); return []; });
-                
+                const url = publicOnly ? '/incidents?is_public=true' : '/incidents';
+                const incidents = await apiFetch(url).then(r => r.json()).catch(e => { console.error('Error:', e); return []; });
+
+                // Update section header dynamically
+                const header = document.querySelector('#incidentsList .section-header h2');
+                if (header) header.textContent = publicOnly ? 'Public Incidents' : 'All Incident Reports';
+
                 const stats = {
                     total: incidents.length,
                     resolved: incidents.filter(i => i.current_status_id === 4).length,
+                    inReview: incidents.filter(i => i.current_status_id === 2).length,
                     critical: incidents.filter(i => i.severity_id === 4).length
                 };
 
                 const resolutionRate = incidents.length > 0 ? ((stats.resolved / stats.total) * 100).toFixed(1) : 0;
 
-                document.getElementById('statsGrid').innerHTML = `
-                    <div class="stat-card" style="border-left: 4px solid #667eea;">
-                        <div class="number" style="color: #667eea;">${stats.total}</div>
-                        <div class="label">Total Incidents</div>
-                    </div>
-                    <div class="stat-card" style="border-left: 4px solid #51cf66;">
-                        <div class="number" style="color: #51cf66;">${stats.resolved}</div>
-                        <div class="label">Resolved (${resolutionRate}%)</div>
-                    </div>
-                    <div class="stat-card" style="border-left: 4px solid #ff6b6b;">
-                        <div class="number" style="color: #ff6b6b;">${stats.critical}</div>
-                        <div class="label">Critical Priority</div>
-                    </div>
-                `;
+                if (statsEl) {
+                    statsEl.innerHTML = `
+                        <div class="stat-card" style="border-left: 4px solid #667eea;">
+                            <div class="number" style="color: #667eea;">${stats.total}</div>
+                            <div class="label">Total Incidents</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #51cf66;">
+                            <div class="number" style="color: #51cf66;">${stats.resolved}</div>
+                            <div class="label">Resolved (${resolutionRate}%)</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #ffa94d;">
+                            <div class="number" style="color: #ffa94d;">${stats.inReview}</div>
+                            <div class="label">In Review 🔎</div>
+                        </div>
+                    `;
+                }
 
                 if (incidents && incidents.length > 0) {
                     document.getElementById('allIncidents').innerHTML = incidents.map(i => `
@@ -1211,16 +1874,24 @@
                                 <span class="badge ${i.severity_name?.toLowerCase()}">${i.severity_name}</span>
                             </div>
                             <h4 style="margin: 5px 0 10px 0; color: #667eea;">${i.type_name}</h4>
-                            <p style="margin: 5px 0; color: #666;"><strong>📍</strong> ${i.location_name}</p>
-                            <p style="margin: 10px 0; color: #555; line-height: 1.5;">${i.description.substring(0, 120)}${i.description.length > 120 ? '...' : ''}</p>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                                <span style="background: #f0f0f0; padding: 4px 10px; border-radius: 4px; font-size: 12px; color: #555;">Status: ${i.status_name}</span>
-                                <button class="btn btn-primary btn-small" onclick="viewIncident(${i.incident_id})" style="padding: 6px 12px; font-size: 12px;">View Details →</button>
+                            <p style="margin: 0 0 15px 0; color: #666; font-size: 14px; line-height: 1.5; height: 3em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${i.description}</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #eee;">
+                                <div style="font-size: 12px; color: #888;">
+                                    <strong>📍 ${i.location_name}</strong><br>
+                                    Reported by: ${i.reported_by_name || 'Anonymous'}
+                                </div>
+                                <button class="btn-details btn-primary" onclick="viewIncident(${i.incident_id})">View Details</button>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    document.getElementById('allIncidents').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">No incidents reported yet</div>';
+                    document.getElementById('allIncidents').innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 12px; border: 1px solid #eee;">
+                            <div style="font-size: 40px; margin-bottom: 20px;">📋</div>
+                            <h3 style="color: #667eea;">No Incidents Found</h3>
+                            <p style="color: #888;">There are no ${publicOnly ? 'public' : ''} incidents to display at this time.</p>
+                        </div>
+                    `;
                 }
             } catch (err) {
                 console.error('Error:', err);
@@ -1228,11 +1899,8 @@
             }
         }
 
-        function viewIncident(id) {
-            alert('Incident #' + id + ' – Full details modal coming soon.');
-        }
-
         // Report Incident
+
         document.addEventListener('DOMContentLoaded', () => {
             loadLocations();
             document.getElementById('incidentForm')?.addEventListener('submit', async (e) => {
@@ -1244,7 +1912,6 @@
                             reported_by: currentUser.user_id,
                             type_id: document.getElementById('incident_type').value,
                             location_id: document.getElementById('location_id').value,
-                            severity_id: document.getElementById('severity_id').value,
                             description: document.getElementById('description').value,
                             is_public: document.getElementById('is_public').checked
                         })
@@ -1268,7 +1935,7 @@
             try {
                 const locations = await apiFetch('/locations').then(r => r.json()).catch(e => { console.error('Error:', e); return []; });
                 const select = document.getElementById('location_id');
-                
+
                 select.innerHTML = '<option value="">&#x1F4CD; Select a location...</option>';
 
                 // Group locations by category for better organization
@@ -1297,12 +1964,11 @@
         }
 
         function updateDefaultSeverity() {
-            if (document.getElementById('incident_type').value === '4') {
-                document.getElementById('severity_id').value = '4';
-            }
+            // Severity selection removed from frontend based on user feedback
         }
 
         window.addEventListener('load', checkAuth);
     </script>
 </body>
+
 </html>

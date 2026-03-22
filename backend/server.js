@@ -6,12 +6,13 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
+
 const pool = new Pool({
   host: 'localhost',
   port: 5432,
-  database: 'demo_db',
+  database: 'incident_db',
   user: 'postgres',
-  password: 'BARI@8114',
+  password: 'tamim783095s',
 });
 
 app.use(express.json());
@@ -27,7 +28,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
 
-    const validDomains = ['@buet.ac.bd', '@ugrad.buet.ac.bd', '@dmp.bd'];
+    const validDomains = ['@buet.ac.bd', '@ugrad.buet.ac.bd', '@cse.buet.ac.bd', '@dmp.bd'];
     const isValidDomain = validDomains.some(domain => email.endsWith(domain));
 
     if (!isValidDomain) {
@@ -35,7 +36,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const result = await pool.query(
-      'SELECT user_id, name, email, role, is_active FROM USERS WHERE email = $1',
+      'SELECT user_id, name, email, role, is_active, password_hash FROM USERS WHERE email = $1',
       [email]
     );
 
@@ -50,7 +51,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Account is inactive' });
     }
 
-    if (password !== 'password@123') {
+    if (password !== 'password@123' && password !== user.password_hash) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -65,6 +66,124 @@ app.post('/api/auth/login', async (req, res) => {
       },
       token
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/auth/register', async (req, res) => {
+  const { name, email, phone, password } = req.body;
+  try {
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password required' });
+    }
+
+    const validDomains = ['@buet.ac.bd', '@ugrad.buet.ac.bd', '@cse.buet.ac.bd', '@dmp.bd'];
+    const isValidDomain = validDomains.some(domain => email.endsWith(domain));
+    if (!isValidDomain) {
+      return res.status(401).json({ error: 'Invalid email domain' });
+    }
+
+    if (phone) {
+      const checkPhone = await pool.query('SELECT user_id FROM USERS WHERE phone = $1', [phone]);
+      if (checkPhone.rows.length > 0) {
+        return res.status(400).json({ error: 'Phone number already registered' });
+      }
+    }
+
+    const checkEmail = await pool.query('SELECT user_id FROM USERS WHERE email = $1', [email]);
+    if (checkEmail.rows.length > 0) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO USERS (Name, Email, Phone, password_hash, Role, is_active) 
+       VALUES ($1, $2, $3, $4, 'User', true) RETURNING user_id, name, email, role`,
+      [name, email, phone || null, password]
+    );
+
+    res.status(201).json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+const verificationCodes = {};
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { phone } = req.body;
+  try {
+    const result = await pool.query('SELECT user_id FROM USERS WHERE phone = $1', [phone]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found with this phone number' });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    verificationCodes[phone] = {
+      code,
+      expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
+    };
+
+    console.log(`\n========================================`);
+    console.log(`[MOCK SMS] Password reset requested for phone: ${phone}`);
+    console.log(`[MOCK SMS] Verification Code: ${code}`);
+    console.log(`========================================\n`);
+
+    res.json({ success: true, message: 'Verification code sent' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/auth/verify-code', async (req, res) => {
+  const { phone, code } = req.body;
+  try {
+    const record = verificationCodes[phone];
+    if (!record || record.code !== code || Date.now() > record.expiresAt) {
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
+    }
+
+    const result = await pool.query('SELECT user_id, name, email, role, is_active FROM USERS WHERE phone = $1', [phone]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    const user = result.rows[0];
+    const token = Buffer.from(`${user.email}:${Date.now()}`).toString('base64');
+
+    delete verificationCodes[phone];
+
+    res.json({
+      success: true,
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      },
+      token
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { new_password } = req.body;
+  try {
+    const auth = req.headers['authorization'] || '';
+    const token = auth.startsWith('Bearer ') ? auth.split(' ')[1] : null;
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+    const decoded = Buffer.from(token, 'base64').toString('ascii');
+    const [email] = decoded.split(':');
+    if (!email) return res.status(401).json({ error: 'Unauthorized' });
+
+    await pool.query('UPDATE USERS SET password_hash = $1 WHERE email = $2', [new_password, email]);
+
+    res.json({ success: true, message: 'Password updated successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -106,56 +225,65 @@ app.get('/api/auth/user', async (req, res) => {
 
 
 app.get('/api/incidents', async (req, res) => {
-  let { status_id, type_id, severity_id, location_id, assigned_to } = req.query;
-  try {
+    let { status_id, type_id, severity_id, location_id, assigned_to, reported_by, is_public } = req.query;
+    try {
 
-    status_id = status_id ? parseInt(status_id, 10) : undefined;
-    type_id = type_id ? parseInt(type_id, 10) : undefined;
-    severity_id = severity_id ? parseInt(severity_id, 10) : undefined;
-    location_id = location_id ? parseInt(location_id, 10) : undefined;
-    assigned_to = assigned_to ? parseInt(assigned_to, 10) : undefined;
+        status_id = status_id ? parseInt(status_id, 10) : undefined;
+        type_id = type_id ? parseInt(type_id, 10) : undefined;
+        severity_id = severity_id ? parseInt(severity_id, 10) : undefined;
+        location_id = location_id ? parseInt(location_id, 10) : undefined;
+        assigned_to = assigned_to ? parseInt(assigned_to, 10) : undefined;
+        reported_by = reported_by ? parseInt(reported_by, 10) : undefined;
 
-    let query = `
-      SELECT i.*, 
-             it.Type_name, 
-             s.Severity_name, 
-             ist.Status_name,
-             l.Location_name,
-             u.Name as Reported_by_name
-      FROM INCIDENTS i
-      LEFT JOIN INCIDENT_TYPES it ON i.Type_id = it.Type_id
-      LEFT JOIN SEVERITY_LEVEL s ON i.Severity_id = s.Severity_id
-      LEFT JOIN INCIDENT_STATUS ist ON i.Current_status_id = ist.Status_id
-      LEFT JOIN Locations l ON i.Location_id = l.Location_id
-      LEFT JOIN USERS u ON i.Reported_by = u.User_id
-      WHERE 1=1
-    `;
-    const params = [];
-    if (status_id !== undefined) {
-      query += ` AND i.Current_status_id = $${params.length + 1}`;
-      params.push(status_id);
-    }
-    if (type_id !== undefined) {
-      query += ` AND i.Type_id = $${params.length + 1}`;
-      params.push(type_id);
-    }
-    if (severity_id !== undefined) {
-      query += ` AND i.Severity_id = $${params.length + 1}`;
-      params.push(severity_id);
-    }
-    if (location_id !== undefined) {
-      query += ` AND i.Location_id = $${params.length + 1}`;
-      params.push(location_id);
-    }
-    if (assigned_to !== undefined) {
-      query += ` AND EXISTS (
-                 SELECT 1 FROM INCIDENT_ASSIGNMENTS a
-                 WHERE a.Incident_id = i.Incident_id
-                   AND a.Assigned_to = $${params.length + 1}
-                   AND a.Is_active = TRUE
-               )`;
-      params.push(assigned_to);
-    }
+        let query = `
+          SELECT i.*, 
+                 it.Type_name, 
+                 s.Severity_name, 
+                 ist.Status_name,
+                 l.Location_name,
+                 u.Name as Reported_by_name
+          FROM INCIDENTS i
+          LEFT JOIN INCIDENT_TYPES it ON i.Type_id = it.Type_id
+          LEFT JOIN SEVERITY_LEVEL s ON i.Severity_id = s.Severity_id
+          LEFT JOIN INCIDENT_STATUS ist ON i.Current_status_id = ist.Status_id
+          LEFT JOIN Locations l ON i.Location_id = l.Location_id
+          LEFT JOIN USERS u ON i.Reported_by = u.User_id
+          WHERE 1=1
+        `;
+        const params = [];
+        if (status_id !== undefined) {
+            query += ` AND i.Current_status_id = $${params.length + 1}`;
+            params.push(status_id);
+        }
+        if (type_id !== undefined) {
+            query += ` AND i.Type_id = $${params.length + 1}`;
+            params.push(type_id);
+        }
+        if (severity_id !== undefined) {
+            query += ` AND i.Severity_id = $${params.length + 1}`;
+            params.push(severity_id);
+        }
+        if (location_id !== undefined) {
+            query += ` AND i.Location_id = $${params.length + 1}`;
+            params.push(location_id);
+        }
+        if (assigned_to !== undefined) {
+            query += ` AND EXISTS (
+                     SELECT 1 FROM INCIDENT_ASSIGNMENTS a
+                     WHERE a.Incident_id = i.Incident_id
+                       AND a.Assigned_to = $${params.length + 1}
+                       AND a.Is_active = TRUE
+                   )`;
+            params.push(assigned_to);
+        }
+        if (reported_by !== undefined) {
+            query += ` AND i.Reported_by = $${params.length + 1}`;
+            params.push(reported_by);
+        }
+        if (is_public !== undefined) {
+            query += ` AND i.is_public = $${params.length + 1}`;
+            params.push(is_public === 'true');
+        }
     query += ' ORDER BY i.Incident_id DESC';
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -319,12 +447,12 @@ app.get('/api/incidents/:id/comments', async (req, res) => {
       WHERE c.Incident_id = $1
     `;
     const params = [req.params.id];
-    
+
 
     if (include_internal !== 'true') {
       query += ' AND c.is_internal = false';
     }
-    
+
     query += ' ORDER BY c.Comment_time ASC';
     const result = await pool.query(query, params);
     res.json(result.rows);
