@@ -77,7 +77,14 @@ VALUES
   ('Dean of Studies Wing', 'dsw@buet.ac.bd', 'hashed_pass_dsw', 'Admin', '880-1234-5679', true),
   ('Vice Chancellor', 'vc@buet.ac.bd', 'hashed_pass_vc', 'Admin', '880-1234-5680', true),
   ('Registrar Office', 'registrar.office@buet.ac.bd', 'hashed_pass_reg', 'Admin', '880-1234-5681', true),
-  ('Dhaka Metro Police', 'dhakametropolice@dmp.bd', 'hashed_pass_dmp', 'Admin', '880-1234-5682', true),
+  ('Dhaka Metro Police', 'dhakametropolice@dmp.bd', 'hashed_pass_dmp', 'Responder', '880-1234-5682', true),
+  ('Water Technician', 'water.tech@buet.ac.bd', 'password@123', 'Responder', '880-1234-5101', true),
+  ('Electrician', 'electrician@buet.ac.bd', 'password@123', 'Responder', '880-1234-5102', true),
+  ('Fire Service', 'fireservice@buet.ac.bd', 'password@123', 'Responder', '880-1234-5103', true),
+  ('Medical Responder', 'medical.responder@buet.ac.bd', 'password@123', 'Responder', '880-1234-5104', true),
+  ('Campus Security', 'security@buet.ac.bd', 'password@123', 'Responder', '880-1234-5105', true),
+  ('IT Support', 'itsupport@buet.ac.bd', 'password@123', 'Responder', '880-1234-5106', true),
+  ('Maintenance Team', 'maintenance.team@buet.ac.bd', 'password@123', 'Responder', '880-1234-5107', true),
   ('System Analyst', 'system.analyst@buet.ac.bd', 'hashed_pass_analyst', 'Analyst', '880-1234-5683', true),
   ('Student User 1', 'student1@ugrad.buet.ac.bd', 'hashed_pass_student1', 'User', '880-1234-5684', true),
   ('Student User 2', 'student2@ugrad.buet.ac.bd', 'hashed_pass_student2', 'User', '880-1234-5685', true)
@@ -154,34 +161,34 @@ VALUES
 -- INCIDENT COMMENTS
 -- ============================================================================
 -- Incident 1 Comments (Maintenance)
-INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
+INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES 
-  (1, 2, 'We have dispatched a technician to look at this.', false, CURRENT_TIMESTAMP - INTERVAL '1.5 days'),
-  (1, 2, 'Waiting for parts to arrive. Expected delivery tomorrow.', true, CURRENT_TIMESTAMP - INTERVAL '1 day');
+  (1, 2, 'We have dispatched a technician to look at this.', false, true, CURRENT_TIMESTAMP - INTERVAL '1.5 days'),
+  (1, 2, 'Waiting for parts to arrive. Expected delivery tomorrow.', true, true, CURRENT_TIMESTAMP - INTERVAL '1 day');
 
 -- Incident 2 Comments (Lost Items)
-INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
+INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
-  (2, 4, 'Thank you for reporting this. We are investigating.', false, CURRENT_TIMESTAMP - INTERVAL '1 day'),
-  (2, 5, 'Checked security cameras - laptop last seen at 2 PM', true, CURRENT_TIMESTAMP - INTERVAL '18 hours');
+  (2, 4, 'Thank you for reporting this. We are investigating.', false, true, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+  (2, 5, 'Checked security cameras - laptop last seen at 2 PM', true, true, CURRENT_TIMESTAMP - INTERVAL '18 hours');
 
 -- Incident 3 Comments (Medical Emergency)
-INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
+INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
-  (3, 2, 'Ambulance has been called. ETA 5 minutes.', true, CURRENT_TIMESTAMP - INTERVAL '3.5 hours'),
-  (3, 2, 'Patient transported to hospital. Follow-up care arranged.', false, CURRENT_TIMESTAMP - INTERVAL '2 hours');
+  (3, 2, 'Ambulance has been called. ETA 5 minutes.', true, true, CURRENT_TIMESTAMP - INTERVAL '3.5 hours'),
+  (3, 2, 'Patient transported to hospital. Follow-up care arranged.', false, true, CURRENT_TIMESTAMP - INTERVAL '2 hours');
 
 -- Incident 5 Comments (Network Outage)
-INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
+INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
-  (5, 2, 'IT team investigating root cause', false, CURRENT_TIMESTAMP - INTERVAL '5.5 hours'),
-  (5, 2, 'Issue caused by failed switch in server room', true, CURRENT_TIMESTAMP - INTERVAL '5 hours'),
-  (5, 2, 'Switch replaced, connectivity restored', false, CURRENT_TIMESTAMP - INTERVAL '4 hours');
+  (5, 2, 'IT team investigating root cause', false, true, CURRENT_TIMESTAMP - INTERVAL '5.5 hours'),
+  (5, 2, 'Issue caused by failed switch in server room', true, true, CURRENT_TIMESTAMP - INTERVAL '5 hours'),
+  (5, 2, 'Switch replaced, connectivity restored', false, true, CURRENT_TIMESTAMP - INTERVAL '4 hours');
 
 -- Incident 8 Comments (Maintenance)
-INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, Comment_time)
+INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
-  (8, 5, 'Completed maintenance - all dispensers refilled', false, CURRENT_TIMESTAMP - INTERVAL '2.5 days');
+  (8, 5, 'Completed maintenance - all dispensers refilled', false, true, CURRENT_TIMESTAMP - INTERVAL '2.5 days');
 
 -- ============================================================================
 -- INCIDENT PHOTOS

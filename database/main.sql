@@ -25,7 +25,7 @@ CREATE TABLE USERS (
     Phone VARCHAR(20),
     Email VARCHAR(100) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    Role VARCHAR(20) NOT NULL CHECK (Role IN ('User', 'Admin', 'Analyst')),
+    Role VARCHAR(20) NOT NULL CHECK (Role IN ('User', 'Admin', 'Analyst', 'Responder')),
     Created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE
 );
@@ -75,6 +75,7 @@ CREATE TABLE INCIDENT_COMMENTS (
     User_id INT REFERENCES USERS(User_id),
     Comment_text TEXT NOT NULL,
     is_internal BOOLEAN DEFAULT FALSE,
+    is_admin_comment BOOLEAN DEFAULT FALSE,
     Comment_time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
