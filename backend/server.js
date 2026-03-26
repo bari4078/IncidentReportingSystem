@@ -566,7 +566,8 @@ app.put('/api/incidents/:id', async (req, res) => {
       `UPDATE INCIDENTS 
        SET Description = COALESCE($1, Description),
            is_public = COALESCE($2, is_public),
-           Severity_id = COALESCE($3, Severity_id)
+           Severity_id = COALESCE($3, Severity_id),
+           Last_updated_time = CURRENT_TIMESTAMP
        WHERE Incident_id = $4 RETURNING *`,
       [description || null, is_public !== undefined ? is_public : null, severity_id || null, req.params.id]
     );
@@ -657,6 +658,50 @@ app.post('/api/incidents/:id/assignments', authenticateToken, requireRole('Admin
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
+
+app.post('/api/incidents/:id/assignments', authenticateToken, requireRole('Admin', 'Responder'), async (req, res) => {
+  const { assigned_to } = req.body;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Deactivate previous active assignments for this incident
+    await client.query(
+      'UPDATE INCIDENT_ASSIGNMENTS SET Is_active = FALSE WHERE Incident_id = $1 AND Is_active = TRUE',
+      [req.params.id]
+    );
+
+    // Insert new assignment
+    await client.query(
+      'INSERT INTO INCIDENT_ASSIGNMENTS (Incident_id, Assigned_to) VALUES ($1, $2)',
+      [req.params.id, assigned_to]
+    );
+
+    // Update incident status to 'Assigned' (ID 3)
+    const currentRes = await client.query('SELECT Current_status_id FROM INCIDENTS WHERE Incident_id = $1', [req.params.id]);
+    if (currentRes.rows.length > 0) {
+      const old_status_id = currentRes.rows[0].current_status_id || 1;
+      if (old_status_id !== 3) {
+        await client.query('UPDATE INCIDENTS SET Current_status_id = 3, Last_updated_time = CURRENT_TIMESTAMP WHERE Incident_id = $1', [req.params.id]);
+        await client.query(
+          `INSERT INTO INCIDENT_STATUS_HISTORY (Incident_id, Old_status_id, New_status_id, Changed_by) 
+           VALUES ($1, $2, 3, $3)`,
+          [req.params.id, old_status_id, assigned_to]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({ success: true, message: 'Incident assigned' });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  } finally {
+    client.release();
   }
 });
 
