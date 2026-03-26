@@ -1,18 +1,31 @@
+require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
+// ─── Environment-driven constants ─────────────────────────────────────────────
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const BCRYPT_ROUNDS = 10;
+
+if (!JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set. Add it to your .env file.');
+  process.exit(1);
+}
 
 const app = express();
-const port = 3000;
+const port = parseInt(process.env.PORT || '3000', 10);
 
 
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'dbms_project',
-  user: 'postgres',
-  password: 'BARI@8114',
+  host:     process.env.DB_HOST     || 'localhost',
+  port:     parseInt(process.env.DB_PORT || '5432', 10),
+  database: process.env.DB_NAME     || 'dbms_project',
+  user:     process.env.DB_USER     || 'postgres',
+  password: process.env.DB_PASSWORD,
 });
 
 app.use(express.json());
@@ -26,12 +39,46 @@ app.use(express.static(path.join(__dirname, '../frontend'), {
   }
 }));
 
+// ─── Auth Middleware ──────────────────────────────────────────────────────────
+/**
+ * Verifies the Bearer JWT in the Authorization header.
+ * Attaches the decoded payload to req.user on success.
+ */
+function authenticateToken(req, res, next) {
+  const auth = req.headers['authorization'] || '';
+  const token = auth.startsWith('Bearer ') ? auth.split(' ')[1] : null;
+  if (!token) return res.status(401).json({ error: 'Unauthorized — no token provided' });
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized — invalid or expired token' });
+  }
+}
+
+/**
+ * Role-based access control gate.
+ * Usage:  requireRole('Admin')  or  requireRole(['Admin','Analyst'])
+ */
+function requireRole(...roles) {
+  const allowed = roles.flat();
+  return (req, res, next) => {
+    if (!req.user || !allowed.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden — insufficient role' });
+    }
+    next();
+  };
+}
+
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   try {
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+      return res.status(400).json(
+        {
+          error: 'Email and password required'
+        });
     }
 
 
@@ -39,7 +86,9 @@ app.post('/api/auth/login', async (req, res) => {
     const isValidDomain = validDomains.some(domain => email.endsWith(domain));
 
     if (!isValidDomain) {
-      return res.status(401).json({ error: 'Invalid email domain' });
+      return res.status(401).json({
+        error: 'Invalid email domain'
+      });
     }
 
     const result = await pool.query(
@@ -55,14 +104,39 @@ app.post('/api/auth/login', async (req, res) => {
 
 
     if (!user.is_active) {
+      if (user.role !== 'User') {
+        return res.status(401).json({ error: 'Account is pending admin approval' });
+      }
       return res.status(401).json({ error: 'Account is inactive' });
     }
 
-    if (password !== 'password@123' && password !== user.password_hash) {
+    // ── Secure password comparison via bcrypt ───────────────────────────────
+    // Support legacy plaintext passwords (migrated users) by falling back to
+    // a direct comparison ONLY when the stored hash does not look like a bcrypt
+    // hash ($2b$ prefix). Once the user logs in, their password is re-hashed.
+    let passwordValid = false;
+    if (user.password_hash && user.password_hash.startsWith('$2')) {
+      // Modern: bcrypt hash
+      passwordValid = await bcrypt.compare(password, user.password_hash);
+    } else {
+      // Legacy: plaintext stored — accept once, then re-hash
+      passwordValid = (password === user.password_hash);
+      if (passwordValid) {
+        const newHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+        await pool.query('UPDATE USERS SET password_hash = $1 WHERE user_id = $2', [newHash, user.user_id]);
+      }
+    }
+
+    if (!passwordValid) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const token = Buffer.from(`${email}:${Date.now()}`).toString('base64');
+    // ── Issue a signed JWT ──────────────────────────────────────────────────
+    const token = jwt.sign(
+      { user_id: user.user_id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
 
     res.json({
       user: {
@@ -80,7 +154,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.post('/api/auth/register', async (req, res) => {
-  const { name, email, phone, password } = req.body;
+  const { name, email, phone, password, role } = req.body;
   try {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password required' });
@@ -104,13 +178,24 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
+    let assignedRole = role || 'User';
+    const validRoles = ['User', 'Admin', 'Analyst', 'Responder'];
+    if (!validRoles.includes(assignedRole)) {
+      assignedRole = 'User';
+    }
+
+    const isActive = (assignedRole === 'User');
+
+    // ── Hash password before storing ────────────────────────────────────────
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
     const result = await pool.query(
       `INSERT INTO USERS (Name, Email, Phone, password_hash, Role, is_active) 
-       VALUES ($1, $2, $3, $4, 'User', true) RETURNING user_id, name, email, role`,
-      [name, email, phone || null, password]
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id, name, email, role`,
+      [name, email, phone || null, hashedPassword, assignedRole, isActive]
     );
 
-    res.status(201).json({ success: true, user: result.rows[0] });
+    res.status(201).json({ success: true, user: result.rows[0], pendingApproval: !isActive });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -157,7 +242,13 @@ app.post('/api/auth/verify-code', async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
 
     const user = result.rows[0];
-    const token = Buffer.from(`${user.email}:${Date.now()}`).toString('base64');
+
+    // Issue a short-lived JWT (15 min) for the password-reset flow only
+    const token = jwt.sign(
+      { user_id: user.user_id, email: user.email, role: user.role, scope: 'password_reset' },
+      JWT_SECRET,
+      { expiresIn: '15m' }
+    );
 
     delete verificationCodes[phone];
 
@@ -184,11 +275,18 @@ app.post('/api/auth/reset-password', async (req, res) => {
     const token = auth.startsWith('Bearer ') ? auth.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-    const decoded = Buffer.from(token, 'base64').toString('ascii');
-    const [email] = decoded.split(':');
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ error: 'Unauthorized — invalid or expired token' });
+    }
+    const { email } = decoded;
     if (!email) return res.status(401).json({ error: 'Unauthorized' });
 
-    await pool.query('UPDATE USERS SET password_hash = $1 WHERE email = $2', [new_password, email]);
+    // Hash the new password before storing
+    const hashedPassword = await bcrypt.hash(new_password, BCRYPT_ROUNDS);
+    await pool.query('UPDATE USERS SET password_hash = $1 WHERE email = $2', [hashedPassword, email]);
 
     res.json({ success: true, message: 'Password updated successfully' });
   } catch (err) {
@@ -204,26 +302,22 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.get('/api/auth/user', async (req, res) => {
   try {
-
     const auth = req.headers['authorization'] || '';
     const token = auth.startsWith('Bearer ') ? auth.split(' ')[1] : null;
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-    const decoded = Buffer.from(token, 'base64').toString('ascii');
-    const [email] = decoded.split(':');
-    if (!email) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ error: 'Unauthorized — invalid or expired token' });
     }
 
     const result = await pool.query(
       'SELECT user_id, name, email, role FROM USERS WHERE email = $1',
-      [email]
+      [decoded.email]
     );
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    if (result.rows.length === 0) return res.status(401).json({ error: 'Unauthorized' });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(401).json({ error: 'Unauthorized' });
@@ -273,17 +367,17 @@ app.get('/api/incident-types', async (req, res) => {
 
 
 app.get('/api/incidents', async (req, res) => {
-    let { status_id, type_id, severity_id, location_id, assigned_to, reported_by, is_public } = req.query;
-    try {
+  let { status_id, type_id, severity_id, location_id, assigned_to, reported_by, is_public } = req.query;
+  try {
 
-        status_id = status_id ? parseInt(status_id, 10) : undefined;
-        type_id = type_id ? parseInt(type_id, 10) : undefined;
-        severity_id = severity_id ? parseInt(severity_id, 10) : undefined;
-        location_id = location_id ? parseInt(location_id, 10) : undefined;
-        assigned_to = assigned_to ? parseInt(assigned_to, 10) : undefined;
-        reported_by = reported_by ? parseInt(reported_by, 10) : undefined;
+    status_id = status_id ? parseInt(status_id, 10) : undefined;
+    type_id = type_id ? parseInt(type_id, 10) : undefined;
+    severity_id = severity_id ? parseInt(severity_id, 10) : undefined;
+    location_id = location_id ? parseInt(location_id, 10) : undefined;
+    assigned_to = assigned_to ? parseInt(assigned_to, 10) : undefined;
+    reported_by = reported_by ? parseInt(reported_by, 10) : undefined;
 
-        let query = `
+    let query = `
           SELECT i.*, 
                  it.Type_name, 
                  s.Severity_name, 
@@ -298,41 +392,41 @@ app.get('/api/incidents', async (req, res) => {
           LEFT JOIN USERS u ON i.Reported_by = u.User_id
           WHERE 1=1
         `;
-        const params = [];
-        if (status_id !== undefined) {
-            query += ` AND i.Current_status_id = $${params.length + 1}`;
-            params.push(status_id);
-        }
-        if (type_id !== undefined) {
-            query += ` AND i.Type_id = $${params.length + 1}`;
-            params.push(type_id);
-        }
-        if (severity_id !== undefined) {
-            query += ` AND i.Severity_id = $${params.length + 1}`;
-            params.push(severity_id);
-        }
-        if (location_id !== undefined) {
-            query += ` AND i.Location_id = $${params.length + 1}`;
-            params.push(location_id);
-        }
-        if (assigned_to !== undefined) {
-            query += ` AND EXISTS (
+    const params = [];
+    if (status_id !== undefined) {
+      query += ` AND i.Current_status_id = $${params.length + 1}`;
+      params.push(status_id);
+    }
+    if (type_id !== undefined) {
+      query += ` AND i.Type_id = $${params.length + 1}`;
+      params.push(type_id);
+    }
+    if (severity_id !== undefined) {
+      query += ` AND i.Severity_id = $${params.length + 1}`;
+      params.push(severity_id);
+    }
+    if (location_id !== undefined) {
+      query += ` AND i.Location_id = $${params.length + 1}`;
+      params.push(location_id);
+    }
+    if (assigned_to !== undefined) {
+      query += ` AND EXISTS (
                      SELECT 1 FROM INCIDENT_ASSIGNMENTS a
                      WHERE a.Incident_id = i.Incident_id
                        AND a.Assigned_to = $${params.length + 1}
                        AND a.Is_active = TRUE
                    )`;
-            params.push(assigned_to);
-        }
-        if (reported_by !== undefined) {
-            query += ` AND i.Reported_by = $${params.length + 1}`;
-            params.push(reported_by);
-        }
-        if (is_public !== undefined) {
-            query += ` AND i.is_public = $${params.length + 1}`;
-            params.push(is_public === 'true');
-        }
-    query += ' ORDER BY i.Incident_id DESC';
+      params.push(assigned_to);
+    }
+    if (reported_by !== undefined) {
+      query += ` AND i.Reported_by = $${params.length + 1}`;
+      params.push(reported_by);
+    }
+    if (is_public !== undefined) {
+      query += ` AND i.is_public = $${params.length + 1}`;
+      params.push(is_public === 'true');
+    }
+    query += ' ORDER BY i.Reported_time DESC, i.Incident_id DESC';
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
@@ -432,7 +526,7 @@ app.put('/api/incidents/:id', async (req, res) => {
   }
 });
 
-app.put('/api/users/:id/status', async (req, res) => {
+app.put('/api/users/:id/status', authenticateToken, requireRole('Admin'), async (req, res) => {
   const { is_active } = req.body;
   try {
     const result = await pool.query(
@@ -449,8 +543,29 @@ app.put('/api/users/:id/status', async (req, res) => {
   }
 });
 
+app.put('/api/users/:id/role', authenticateToken, requireRole('Admin'), async (req, res) => {
+  const { role } = req.body;
+  try {
+    const validRoles = ['User', 'Admin', 'Analyst', 'Responder'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+    const result = await pool.query(
+      'UPDATE USERS SET role = $1 WHERE User_id = $2 RETURNING user_id, name, email, role, is_active',
+      [role, req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
 
-app.post('/api/incidents/:id/status', async (req, res) => {
+
+app.post('/api/incidents/:id/status', authenticateToken, async (req, res) => {
   const { new_status_id, changed_by } = req.body;
   try {
 
@@ -484,12 +599,12 @@ app.post('/api/incidents/:id/status', async (req, res) => {
 });
 
 
-app.post('/api/incidents/:id/assignments', async (req, res) => {
+app.post('/api/incidents/:id/assignments', authenticateToken, requireRole('Admin', 'Responder'), async (req, res) => {
   const { assigned_to } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    
+
     // Deactivate previous active assignments for this incident
     await client.query(
       'UPDATE INCIDENT_ASSIGNMENTS SET Is_active = FALSE WHERE Incident_id = $1 AND Is_active = TRUE',
@@ -1117,13 +1232,13 @@ app.get('/api/forum/threads/:id', async (req, res) => {
              (SELECT COUNT(*) FROM FORUM_POST_REACTIONS fpr WHERE fpr.Post_id = fp.Post_id AND fpr.Reaction_type = 'like') as likes_count,
              (SELECT COUNT(*) FROM FORUM_POST_REACTIONS fpr WHERE fpr.Post_id = fp.Post_id AND fpr.Reaction_type = 'dislike') as dislikes_count
       `;
-    
+
     let queryParams = [req.params.id];
     if (user_id) {
-        postQuery += `, (SELECT Reaction_type FROM FORUM_POST_REACTIONS fpr WHERE fpr.Post_id = fp.Post_id AND fpr.User_id = $2) as user_reaction `;
-        queryParams.push(user_id);
+      postQuery += `, (SELECT Reaction_type FROM FORUM_POST_REACTIONS fpr WHERE fpr.Post_id = fp.Post_id AND fpr.User_id = $2) as user_reaction `;
+      queryParams.push(user_id);
     } else {
-        postQuery += `, NULL as user_reaction `;
+      postQuery += `, NULL as user_reaction `;
     }
 
     postQuery += `
@@ -1182,15 +1297,15 @@ app.post('/api/forum/posts/:id/react', async (req, res) => {
   const { user_id, reaction_type } = req.body; // 'like' or 'dislike'
   try {
     const existing = await pool.query('SELECT * FROM FORUM_POST_REACTIONS WHERE Post_id = $1 AND User_id = $2', [req.params.id, user_id]);
-    
+
     if (existing.rows.length > 0) {
-        if (existing.rows[0].reaction_type === reaction_type) {
-            await pool.query('DELETE FROM FORUM_POST_REACTIONS WHERE Post_id = $1 AND User_id = $2', [req.params.id, user_id]);
-        } else {
-            await pool.query('UPDATE FORUM_POST_REACTIONS SET Reaction_type = $1 WHERE Post_id = $2 AND User_id = $3', [reaction_type, req.params.id, user_id]);
-        }
+      if (existing.rows[0].reaction_type === reaction_type) {
+        await pool.query('DELETE FROM FORUM_POST_REACTIONS WHERE Post_id = $1 AND User_id = $2', [req.params.id, user_id]);
+      } else {
+        await pool.query('UPDATE FORUM_POST_REACTIONS SET Reaction_type = $1 WHERE Post_id = $2 AND User_id = $3', [reaction_type, req.params.id, user_id]);
+      }
     } else {
-        await pool.query('INSERT INTO FORUM_POST_REACTIONS (Post_id, User_id, Reaction_type) VALUES ($1, $2, $3)', [req.params.id, user_id, reaction_type]);
+      await pool.query('INSERT INTO FORUM_POST_REACTIONS (Post_id, User_id, Reaction_type) VALUES ($1, $2, $3)', [req.params.id, user_id, reaction_type]);
     }
     res.json({ success: true });
   } catch (err) {

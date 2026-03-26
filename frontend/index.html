@@ -760,12 +760,16 @@
             <div class="menu-item role-analyst" id="navAnalystDashboard" onclick="showSection('analystDashboard', event)" style="display:none;">
                 <span>📊</span> Analytics Dashboard
             </div>
-            <!-- Admin + Analyst items -->
-            <div class="menu-item role-admin role-analyst" id="navAllIncidents" onclick="showSection('incidentsList', event)" style="display:none;">
+            <!-- Responder-only items -->
+            <div class="menu-item role-responder" id="navResponderDashboard" onclick="showSection('responderDashboard', event)" style="display:none;">
+                <span>🛠️</span> Responder Dashboard
+            </div>
+            <!-- Admin + Analyst + Responder items -->
+            <div class="menu-item role-admin role-analyst role-responder" id="navAllIncidents" onclick="showSection('incidentsList', event)" style="display:none;">
                 <span>📢</span> All Incidents
             </div>
             <!-- Public forum accessible to everyone -->
-            <div class="menu-item role-user role-admin role-analyst" id="navPublicForum" onclick="showSection('publicForum', event)" style="display:none;">
+            <div class="menu-item role-user role-admin role-analyst role-responder" id="navPublicForum" onclick="showSection('publicForum', event)" style="display:none;">
                 <span>🏛️</span> Public Forum
             </div>
             <div class="menu-item role-user" id="navPublicIncidents" onclick="showSection('incidentsList', event)" style="display:none;">
@@ -1018,6 +1022,33 @@
                         <div style="width: 50%;"><canvas id="publicRatioChart"></canvas></div>
                         <div id="publicRatioInfo" style="width: 50%; padding-left: 40px;"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESPONDER DASHBOARD -->
+        <div id="responderDashboard" class="section">
+            <div class="section-header">
+                <h2>Responder Dashboard</h2>
+                <p>Manage incidents assigned to you</p>
+            </div>
+            <div class="stats-grid" id="responderStats"></div>
+            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 20px; font-weight: 700;">My Assignments</h3>
+                <div style="overflow-x: auto;">
+                    <table class="table" id="responderIncidents">
+                        <thead>
+                            <tr>
+                                <th>Incident ID</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -1417,6 +1448,8 @@
                 showSection('adminDashboard');
             } else if (roleNorm === 'Analyst') {
                 showSection('analystDashboard');
+            } else if (roleNorm === 'Responder') {
+                showSection('responderDashboard');
             } else {
                 showSection('publicForum');
             }
@@ -1459,6 +1492,7 @@
                 'reportIncident': 'navReport',
                 'adminDashboard': 'navAdminDashboard',
                 'analystDashboard': 'navAnalystDashboard',
+                'responderDashboard': 'navResponderDashboard',
                 'userProfile': 'navProfile'
             };
             const navId = navMap[sectionId];
@@ -1473,9 +1507,14 @@
             // Load specific data
             if (sectionId === 'adminDashboard') loadAdminDashboard();
             if (sectionId === 'analystDashboard') loadAnalystDashboard();
+            if (sectionId === 'responderDashboard') loadResponderDashboard();
             if (sectionId === 'userDashboard') loadUserDashboard();
             if (sectionId === 'incidentsList') loadAllIncidents(currentUser.role === 'User'); // User sees only public; Admin/Analyst see all
-            if (sectionId === 'reportIncident') initializeReportMap();
+            if (sectionId === 'reportIncident') {
+                 initializeReportMap();
+                 const alertEl = document.getElementById('reportAlert');
+                 if (alertEl) alertEl.innerHTML = '';
+            }
             if (sectionId === 'userProfile') loadUserProfile();
             if (sectionId === 'publicForum') loadForumThreads();
         }
@@ -1560,6 +1599,9 @@
                             <!-- Admin Management Controls (Rendered if Admin) -->
                             <div id="adminControlsContainer"></div>
 
+                            <!-- Responder Management Controls (Rendered if Resolver) -->
+                            <div id="responderControlsContainer"></div>
+
                             <!-- Comments Section -->
                             <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #eef0f5; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
                                 <h4 style="margin: 0 0 20px 0; font-size: 12px; color: #172e50; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
@@ -1623,6 +1665,9 @@
                     if (currentUser.role === 'Admin') {
                         loadAdminControls(i);
                     }
+                    if (currentUser.role === 'Responder') {
+                        loadResponderControls(i);
+                    }
                 }, 250);
 
             } catch (err) {
@@ -1650,8 +1695,8 @@
                     apiFetch('/severity-levels').then(r => r.json())
                 ]);
 
-                // Filter valid assignees (e.g., Admins and Analysts)
-                const assignees = users.filter(u => ['Admin', 'Analyst'].includes(u.role) && u.is_active);
+                // Filter valid assignees (only Responders)
+                const assignees = users.filter(u => u.role === 'Responder' && u.is_active);
 
                 container.innerHTML = `
                     <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #eef0f5; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-top: 25px;">
@@ -1681,10 +1726,10 @@
 
                             <!-- Assignment Update -->
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 12px;">Assign To</label>
+                                <label style="font-size: 12px;">Assign Specialist / Responder</label>
                                 <select id="adminAssignSelect" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px;">
-                                    <option value="">Select Assignee...</option>
-                                    ${assignees.map(u => `<option value="${u.user_id}">${u.name} (${u.role})</option>`).join('')}
+                                    <option value="">Select Responder...</option>
+                                    ${assignees.map(u => `<option value="${u.user_id}">${u.name}</option>`).join('')}
                                 </select>
                                 <button class="btn btn-small" onclick="assignIncident(${incident.incident_id})" style="margin-top: 5px; width: 100%; background: #e2e8f0;">Assign</button>
                             </div>
@@ -1762,6 +1807,114 @@
                 } else {
                     const data = await response.json();
                     alert('Failed to assign incident: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+
+        async function loadResponderDashboard() {
+            const statsContainer = document.getElementById('responderStats');
+            const tableBody = document.querySelector('#responderIncidents tbody');
+            if (!statsContainer || !tableBody) return;
+            
+            try {
+                const myIncidents = await apiFetch(`/incidents?assigned_to=${currentUser.user_id}`).then(r => r.json());
+                
+                const resolvedCount = myIncidents.filter(i => i.status_name === 'Resolved').length;
+                const activeCount = myIncidents.filter(i => i.status_name === 'Assigned').length;
+                
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${myIncidents.length}</div>
+                        <div class="stat-label">Total Assigned</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${activeCount}</div>
+                        <div class="stat-label">Active Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${resolvedCount}</div>
+                        <div class="stat-label">Successfully Resolved</div>
+                    </div>
+                `;
+
+                if (myIncidents.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: #999;">No incidents currently assigned to you.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = myIncidents.map(i => `
+                    <tr>
+                        <td style="font-weight: 700;">#${i.incident_id}</td>
+                        <td>${i.type_name}</td>
+                        <td>${BUET_LOCATIONS[i.location_id]?.name || 'Unknown'}</td>
+                        <td><span class="badge ${i.severity_name.toLowerCase()}">${i.severity_name}</span></td>
+                        <td><span class="badge" style="background: #e2e8f0; color: #475569;">${i.status_name}</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="btn btn-small" onclick="viewIncident(${i.incident_id})" style="background: #172e50; color: white;">View</button>
+                                ${i.status_name === 'Assigned' || i.status_name === 'In Review' ? `
+                                    <button class="btn btn-small" onclick="updateIncidentStatusByResponder(${i.incident_id}, 4)" style="background: #22c55e; color: white;">Resolve</button>
+                                    <button class="btn btn-small" onclick="updateIncidentStatusByResponder(${i.incident_id}, 5)" style="background: #ef4444; color: white;">Reject</button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error("Error loading responder dashboard:", err);
+            }
+        }
+
+        async function loadResponderControls(incident) {
+            const container = document.getElementById('responderControlsContainer');
+            if (!container) return;
+            
+            // Only show if the current user is the assignee and it's not already resolved/rejected
+            if (incident.assigned_to !== currentUser.user_id || incident.current_status_id >= 4) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="background: #f0fdf4; padding: 25px; border-radius: 20px; border: 1px solid #bbf7d0; margin-top: 25px;">
+                    <h4 style="margin: 0 0 15px 0; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+                        🛠️ Responder Actions
+                    </h4>
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn" onclick="updateIncidentStatusByResponder(${incident.incident_id}, 4)" style="flex: 1; background: #22c55e; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">Mark as Resolved</button>
+                        <button class="btn" onclick="updateIncidentStatusByResponder(${incident.incident_id}, 5)" style="flex: 1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">Reject Incident</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function updateIncidentStatusByResponder(incidentId, statusId) {
+            const confirmMsg = statusId === 4 ? "Are you sure you want to resolve this incident?" : "Are you sure you want to reject this incident?";
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                const response = await apiFetch(`/incidents/${incidentId}/status`, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        new_status_id: statusId, 
+                        changed_by: currentUser.user_id 
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Status updated successfully!');
+                    if (document.getElementById('responderDashboard').classList.contains('active')) {
+                        loadResponderDashboard();
+                    } else {
+                        viewIncident(incidentId);
+                    }
+                } else {
+                    const data = await response.json();
+                    alert('Failed: ' + (data.error || 'Unknown error'));
                 }
             } catch (err) {
                 console.error(err);
@@ -2115,7 +2268,14 @@
                             <td><strong style="color: #2c3e50;">#${u.user_id}</strong></td>
                             <td>${u.name}</td>
                             <td>${u.email}</td>
-                            <td><span class="badge ${u.role?.toLowerCase() || 'user'}">${u.role}</span></td>
+                            <td>
+                                <select onchange="changeUserRole(${u.user_id}, this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;">
+                                    <option value="User" ${u.role === 'User' ? 'selected' : ''}>User</option>
+                                    <option value="Responder" ${u.role === 'Responder' ? 'selected' : ''}>Responder</option>
+                                    <option value="Analyst" ${u.role === 'Analyst' ? 'selected' : ''}>Analyst</option>
+                                    <option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                                </select>
+                            </td>
                             <td>${u.is_active ? '<span style="color: #059669; font-weight:bold;">Active</span>' : '<span style="color: #e53e3e; font-weight:bold;">Suspended</span>'}</td>
                             <td>
                                 <button class="btn btn-small" onclick="toggleUserStatus(${u.user_id}, ${!u.is_active})" 
@@ -2151,6 +2311,29 @@
                 }
             } catch (error) {
                 console.error('Error updating user status:', error);
+            }
+        }
+
+        async function changeUserRole(userId, newRole) {
+            if(!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
+                loadAdminDashboard();
+                return;
+            }
+            try {
+                const response = await apiFetch(`/users/${userId}/role`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ role: newRole })
+                });
+                if (response.ok) {
+                    loadAdminDashboard();
+                } else {
+                    const data = await response.json();
+                    alert('Failed to update user role: ' + (data.error || 'Unknown error'));
+                    loadAdminDashboard();
+                }
+            } catch (error) {
+                console.error('Error updating user role:', error);
+                loadAdminDashboard();
             }
         }
 
@@ -2679,7 +2862,13 @@
             loadLocations();
             document.getElementById('incidentForm')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const alertEl = document.getElementById('reportAlert');
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+
                 try {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Reporting...';
+                    
                     const response = await apiFetch('/incidents', {
                         method: 'POST',
                         body: JSON.stringify({
@@ -2692,15 +2881,26 @@
                     });
 
                     if (response.ok) {
-                        document.getElementById('reportAlert').innerHTML = '<div class="alert alert-success">✓ Incident reported successfully! Thank you for helping us keep campus safe.</div>';
+                        alertEl.innerHTML = '<div class="alert alert-success">✓ Incident reported successfully! Thank you for helping us keep campus safe.</div>';
                         document.getElementById('incidentForm').reset();
+                        // Also reset map pin
+                        cleanupMap('reportMap');
+                        initializeReportMap();
+                        
                         setTimeout(() => {
                             showSection('userDashboard');
                             loadUserDashboard();
                         }, 2000);
+                    } else {
+                        const errorData = await response.json();
+                        alertEl.innerHTML = `<div class="alert alert-error">❌ Error: ${errorData.error || 'Failed to submit report'}</div>`;
                     }
                 } catch (err) {
                     console.error('Error:', err);
+                    alertEl.innerHTML = '<div class="alert alert-error">❌ Connection error. Please try again.</div>';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Report Incident';
                 }
             });
         });
