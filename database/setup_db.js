@@ -1,13 +1,14 @@
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
 const adminPool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'BARI@8114',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  database: 'postgres', // Initial connection to 'postgres' to create 'dbms_project'
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD,
 });
 
 async function setupDatabase() {
@@ -33,11 +34,11 @@ async function setupDatabase() {
     // Connect to the new database and run migrations
     console.log('\n📝 Running database schema setup...');
     const projectPool = new Pool({
-      host: 'localhost',
-      port: 5432,
-      database: 'dbms_project',
-      user: 'postgres',
-      password: 'BARI@8114',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      database: process.env.DB_NAME || 'dbms_project',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD,
     });
 
     // Run main schema

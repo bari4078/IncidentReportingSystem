@@ -1,87 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Incident Reporting System - Register</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; font-family: 'Raleway', sans-serif; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Raleway', sans-serif;
+        }
+
         .login-container {
-            width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
             padding: 20px;
         }
 
         .login-box {
-            display: flex; flex-direction: column; width: 100%; max-width: 520px;
-            background: rgba(26, 26, 46, 0.95); border-radius: 24px; overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 520px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
 
         .login-form-section {
-            padding: 50px; color: white; text-align: center;
+            padding: 50px;
+            color: white;
+            text-align: center;
         }
 
         .form-title {
-            font-size: 30px; font-weight: 800; margin-bottom: 8px;
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 8px;
             background: linear-gradient(to right, #667eea, #764ba2);
-            -webkit-background-clip: text; background-clip: text;
-            -webkit-text-fill-color: transparent; letter-spacing: -1px;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
 
         .form-subtitle {
-            font-size: 14px; opacity: 0.6; margin-bottom: 35px;
-            letter-spacing: 1px; text-transform: uppercase;
+            font-size: 14px;
+            opacity: 0.6;
+            margin-bottom: 35px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
         .form-group label {
-            display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
-            margin-bottom: 8px; color: rgba(255, 255, 255, 0.5); font-weight: 700;
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
         }
+
         .form-group input {
-            width: 100%; padding: 14px 16px; border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px; background: rgba(255, 255, 255, 0.05); color: white;
-            font-family: inherit; font-size: 15px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-family: inherit;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .form-group input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
         .form-group input:focus {
-            outline: none; background: rgba(255, 255, 255, 0.1); border-color: #667eea;
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #667eea;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
         }
 
         .login-btn {
-            width: 100%; padding: 16px; background: linear-gradient(135deg, #f5a962 0%, #f19035 100%);
-            border: none; border-radius: 12px; color: #172e50; font-weight: 700; font-size: 16px;
-            cursor: pointer; transition: all 0.3s; margin-top: 15px;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #f5a962 0%, #f19035 100%);
+            border: none;
+            border-radius: 12px;
+            color: #172e50;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
             box-shadow: 0 10px 15px -3px rgba(245, 169, 98, 0.3);
         }
+
         .login-btn:hover:not(:disabled) {
-            transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(245, 169, 98, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(245, 169, 98, 0.4);
             filter: brightness(1.05);
         }
-        .login-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
 
         .error-message {
-            display: none; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2);
-            padding: 14px; border-radius: 12px; color: #fca5a5; font-size: 14px; margin-bottom: 25px;
+            display: none;
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            padding: 14px;
+            border-radius: 12px;
+            color: #fca5a5;
+            font-size: 14px;
+            margin-bottom: 25px;
         }
-        .error-message.show { display: block; }
-        
+
+        .error-message.show {
+            display: block;
+        }
+
         .success-message {
-            display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);
-            padding: 14px; border-radius: 12px; color: #6ee7b7; font-size: 14px; margin-bottom: 25px;
+            display: none;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 14px;
+            border-radius: 12px;
+            color: #6ee7b7;
+            font-size: 14px;
+            margin-bottom: 25px;
         }
-        .success-message.show { display: block; }
+
+        .success-message.show {
+            display: block;
+        }
 
         @media (max-width: 480px) {
-            .login-form-section { padding: 40px 25px; }
+            .login-form-section {
+                padding: 40px 25px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <div class="login-box">
@@ -100,9 +187,10 @@
 
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" placeholder="your.email@buet.ac.bd" required autocomplete="email" />
+                        <input type="email" id="email" placeholder="your.email@buet.ac.bd" required
+                            autocomplete="email" />
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
                         <input type="tel" id="phone" placeholder="017xxxxxxxx" required />
@@ -110,7 +198,8 @@
 
                     <div class="form-group">
                         <label for="role">Role</label>
-                        <select id="role" style="width: 100%; padding: 14px 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: rgba(255, 255, 255, 0.05); color: white; font-family: inherit; font-size: 15px; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                        <select id="role"
+                            style="width: 100%; padding: 14px 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: rgba(255, 255, 255, 0.05); color: white; font-family: inherit; font-size: 15px; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
                             <option value="User" style="color: black;">General User</option>
                             <option value="Responder" style="color: black;">Responder</option>
                             <option value="Analyst" style="color: black;">Analyst</option>
@@ -120,15 +209,19 @@
 
                     <div class="form-group" style="margin-bottom: 30px;">
                         <label for="password">Password</label>
-                        <input type="password" id="password" placeholder="••••••••" required autocomplete="new-password" />
+                        <input type="password" id="password" placeholder="••••••••" required
+                            autocomplete="new-password" />
                     </div>
 
                     <button type="submit" class="login-btn" id="registerBtn">Create Account</button>
                 </form>
 
-                <div style="text-align: center; margin-top: 35px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
+                <div
+                    style="text-align: center; margin-top: 35px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
                     <span style="color: rgba(255,255,255,0.4); font-size: 14px;">Already have an account?</span>
-                    <a href="login.html" style="color: #667eea; text-decoration: none; font-weight: 700; margin-left: 8px; font-size: 14px;">Login instead</a>
+                    <a href="login.html"
+                        style="color: #667eea; text-decoration: none; font-weight: 700; margin-left: 8px; font-size: 14px;">Login
+                        instead</a>
                 </div>
             </div>
         </div>
@@ -156,7 +249,7 @@
                 errorMessage.classList.remove('show');
             }, 6000);
         }
-        
+
         function showSuccess(message) {
             successMessage.textContent = message;
             successMessage.classList.add('show');
@@ -173,7 +266,7 @@
         }
 
         registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+            e.preventDefault(); // stops page reload
 
             const name = nameInput.value.trim();
             const email = emailInput.value.trim();
@@ -218,7 +311,7 @@
                         window.location.href = 'login.html';
                     }, 2000);
                 }
-                
+
             } catch (err) {
                 console.error('Registration error:', err);
                 showError('Network error. Unable to connect to backend.');
@@ -235,4 +328,5 @@
         });
     </script>
 </body>
+
 </html>
