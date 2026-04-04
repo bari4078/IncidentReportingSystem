@@ -1,8 +1,6 @@
 BEGIN;
 
--- ============================================================================
--- CLEAN SLATE: Remove existing data and reset identity sequences
--- ============================================================================
+
 TRUNCATE TABLE 
   INCIDENT_AUDIO, INCIDENT_VIDEO, INCIDENT_PHOTOS, INCIDENT_COMMENTS,
   INCIDENT_ASSIGNMENTS, INCIDENT_STATUS_HISTORY, INCIDENTS,
@@ -10,9 +8,6 @@ TRUNCATE TABLE
   INCIDENT_ANALYTICS, USERS, Locations, INCIDENT_STATUS, SEVERITY_LEVEL
 RESTART IDENTITY CASCADE;
 
--- ============================================================================
--- SEVERITY LEVELS
--- ============================================================================
 INSERT INTO SEVERITY_LEVEL (Severity_name, Priority_score, Description) 
 VALUES 
   ('Low', 1, 'Minor issues with no immediate impact'),
@@ -20,9 +15,6 @@ VALUES
   ('High', 3, 'Serious issues requiring urgent attention'),
   ('Critical', 4, 'Emergency situations requiring immediate action');
 
--- ============================================================================
--- INCIDENT STATUS
--- ============================================================================
 INSERT INTO INCIDENT_STATUS (Status_name) 
 VALUES 
   ('Reported'),
@@ -31,46 +23,40 @@ VALUES
   ('Resolved'),
   ('Rejected');
 
--- ============================================================================
--- LOCATIONS - BUET CAMPUS
--- ============================================================================
-INSERT INTO Locations (Location_name, Building, Floor, Room) 
+INSERT INTO Locations (Location_name, Latitude, Longitude, Building, Category) 
 VALUES
-  ('Main Gate', 'Main Entrance', 'Ground', 'Entry Point'),
-  ('Shahid Abrar Fahad Library (Central Library)', 'Library Building', 'Ground', 'Main Hall'),
-  ('Registrar Building', 'Administration', 'Ground', 'Main Office'),
-  ('Rector''s Office', 'Admin Block', '1', 'Office'),
-  ('ECE Building (Electrical & Computer Engineering)', 'ECE Block', '2', 'Lab'),
-  ('EME Building (Mechanical Engineering)', 'ME Block', '2', 'Lab'),
-  ('Civil Engineering Building', 'CE Block', '1', 'Classroom'),
-  ('Chemistry Department', 'Science Block', '2', 'Lab'),
-  ('Physics Department', 'Science Block', '2', 'Lab'),
-  ('Architecture Building', 'Arch Block', '3', 'Studio'),
-  ('Chemical Engineering Building', 'ChE Block', '2', 'Lab'),
-  ('Ahsanullah Hall', 'Boys Dormitory', '3', 'Common Room'),
-  ('Titumir Hall', 'Boys Dormitory', '2', 'Common Room'),
-  ('Suhrawardy Hall', 'Boys Dormitory', '2', 'Common Room'),
-  ('Sher-e-Bangla Hall', 'Boys Dormitory', '2', 'Common Room'),
-  ('Dr. M.A. Rashid Hall', 'Boys Dormitory', '2', 'Common Room'),
-  ('Sabekun Nahar Sony Hall', 'Girls Dormitory', '2', 'Common Room'),
-  ('Shahid Smrity Hall', 'Boys Dormitory', '2', 'Common Room'),
-  ('Swadhinata Hall', 'Boys Dormitory', '2', 'Common Room'),
-  ('Kazi Nazrul Islam Hall', 'Boys Dormitory', '2', 'Common Room'),
-  ('BUET Masjid (Main Mosque)', 'Mosque', 'Ground', 'Prayer Hall'),
-  ('Central Cafeteria', 'Food Court', 'Ground', 'Dining Area'),
-  ('BUET Stadium & Playground', 'Sports Complex', 'Ground', 'Field'),
-  ('Gymnasium', 'Sports Facility', 'Ground', 'Main Hall'),
-  ('Medical Center', 'Healthcare', 'Ground', 'Reception'),
-  ('Bus Terminus', 'Transport', 'Ground', 'Platform'),
-  ('Machine Shop & Manufacturing Lab', 'Workshop', 'Ground', 'Main Area'),
-  ('IT Center (ICT Academy)', 'Tech Hub', '1', 'Computer Lab'),
-  ('Student Center', 'Community Space', 'Ground', 'Main Area'),
-  ('Water Treatment Plant', 'Infrastructure', 'Ground', 'Plant'),
-  ('Shaheed Minar (Monument)', 'Memorial', 'Ground', 'Monument');
+  ('Main Gate', 23.7310, 90.3880, 'Main Entrance', 'Gate'),
+  ('Shahid Abrar Fahad Library (Central Library)', 23.7268, 90.3912, 'Library Building', 'Academic'),
+  ('Registrar Building', 23.7255, 90.3895, 'Administration', 'Administrative'),
+  ('Rector''s Office', 23.7253, 90.3890, 'Admin Block', 'Administrative'),
+  ('ECE Building (Electrical & Computer Engineering)', 23.7275, 90.3935, 'ECE Block', 'Academic'),
+  ('EME Building (Mechanical Engineering)', 23.7290, 90.3950, 'ME Block', 'Academic'),
+  ('Civil Engineering Building', 23.7268, 90.3945, 'CE Block', 'Academic'),
+  ('Chemistry Department', 23.7285, 90.3920, 'Science Block', 'Academic'),
+  ('Physics Department', 23.7288, 90.3915, 'Science Block', 'Academic'),
+  ('Architecture Building', 23.7305, 90.3960, 'Arch Block', 'Academic'),
+  ('Chemical Engineering Building', 23.7275, 90.3925, 'ChE Block', 'Academic'),
+  ('Ahsanullah Hall', 23.7305, 90.3975, 'Boys Dormitory', 'Hostel'),
+  ('Titumir Hall', 23.7295, 90.3860, 'Boys Dormitory', 'Hostel'),
+  ('Suhrawardy Hall', 23.7280, 90.3905, 'Boys Dormitory', 'Hostel'),
+  ('Sher-e-Bangla Hall', 23.7275, 90.3880, 'Boys Dormitory', 'Hostel'),
+  ('Dr. M.A. Rashid Hall', 23.7265, 90.3920, 'Boys Dormitory', 'Hostel'),
+  ('Sabekun Nahar Sony Hall', 23.7310, 90.3895, 'Girls Dormitory', 'Hostel'),
+  ('Shahid Smrity Hall', 23.7320, 90.3925, 'Boys Dormitory', 'Hostel'),
+  ('Swadhinata Hall', 23.7315, 90.3890, 'Boys Dormitory', 'Hostel'),
+  ('Kazi Nazrul Islam Hall', 23.7300, 90.3945, 'Boys Dormitory', 'Hostel'),
+  ('BUET Masjid (Main Mosque)', 23.7240, 90.3915, 'Mosque', 'Religious'),
+  ('Central Cafeteria', 23.7245, 90.3895, 'Food Court', 'Facility'),
+  ('BUET Stadium & Playground', 23.7220, 90.3850, 'Sports Complex', 'Sports'),
+  ('Gymnasium', 23.7215, 90.3905, 'Sports Facility', 'Sports'),
+  ('Medical Center', 23.7250, 90.3950, 'Healthcare', 'Medical'),
+  ('Bus Terminus', 23.7330, 90.3895, 'Transport', 'Transport'),
+  ('Machine Shop & Manufacturing Lab', 23.7260, 90.3955, 'Workshop', 'Lab'),
+  ('IT Center (ICT Academy)', 23.7270, 90.3875, 'Tech Hub', 'Academic'),
+  ('Student Center', 23.7235, 90.3920, 'Community Space', 'Facility'),
+  ('Water Treatment Plant', 23.7210, 90.3870, 'Infrastructure', 'Utility'),
+  ('Shaheed Minar (Monument)', 23.7325, 90.3880, 'Memorial', 'Monument');
 
--- ============================================================================
--- USERS
--- ============================================================================
 INSERT INTO USERS (Name, Email, password_hash, Role, Phone, is_active) 
 VALUES
   ('Authority Office', 'authority@buet.ac.bd', 'hashed_pass_auth', 'Admin', '880-1234-5678', true),
@@ -90,9 +76,6 @@ VALUES
   ('Student User 2', 'student2@ugrad.buet.ac.bd', 'hashed_pass_student2', 'User', '880-1234-5685', true)
 ON CONFLICT (Email) DO NOTHING;
 
--- ============================================================================
--- INCIDENT TYPES
--- ============================================================================
 INSERT INTO INCIDENT_TYPES (Type_name, Default_severity_level, Description) 
 VALUES
   ('Theft/Lost Items', (SELECT severity_id FROM severity_level WHERE severity_name='Medium' LIMIT 1), 'Missing or stolen items such as equipment, keys, or personal belongings'),
@@ -100,9 +83,6 @@ VALUES
   ('Maintenance', (SELECT severity_id FROM severity_level WHERE severity_name='Low' LIMIT 1), 'Infrastructure and maintenance issues including repairs needed'),
   ('Medical', (SELECT severity_id FROM severity_level WHERE severity_name='Critical' LIMIT 1), 'Medical emergencies or health-related incidents');
 
--- ============================================================================
--- INCIDENTS
--- ============================================================================
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (1, 3, 5, 1, 1, 'Broken light fixture in ECE Building, lab area on 2nd floor', true);
 
@@ -133,9 +113,6 @@ VALUES (7, 4, 21, 3, 1, 'Medical assistance needed near Mosque area during praye
 INSERT INTO INCIDENTS (Reported_by, Type_id, Location_id, Severity_id, Current_status_id, Description, is_public)
 VALUES (1, 3, 7, 2, 2, 'Ceiling leak reported in Civil Engineering Building', true);
 
--- ============================================================================
--- INCIDENT STATUS HISTORY
--- ============================================================================
 INSERT INTO INCIDENT_STATUS_HISTORY (Incident_id, Old_status_id, New_status_id, Changed_by, Change_time)
 VALUES
   (1, 1, 2, 2, CURRENT_TIMESTAMP - INTERVAL '2 days'),
@@ -145,9 +122,6 @@ VALUES
   (6, 1, 3, 2, CURRENT_TIMESTAMP - INTERVAL '12 hours'),
   (8, 1, 4, 2, CURRENT_TIMESTAMP - INTERVAL '3 days');
 
--- ============================================================================
--- INCIDENT ASSIGNMENTS
--- ============================================================================
 INSERT INTO INCIDENT_ASSIGNMENTS (Incident_id, Assigned_to, Is_active)
 VALUES
   (1, 2, true),   
@@ -157,42 +131,36 @@ VALUES
   (6, 5, true),   
   (8, 5, false);  
 
--- ============================================================================
--- INCIDENT COMMENTS
--- ============================================================================
--- Incident 1 Comments (Maintenance)
+
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES 
   (1, 2, 'We have dispatched a technician to look at this.', false, true, CURRENT_TIMESTAMP - INTERVAL '1.5 days'),
   (1, 2, 'Waiting for parts to arrive. Expected delivery tomorrow.', true, true, CURRENT_TIMESTAMP - INTERVAL '1 day');
 
--- Incident 2 Comments (Lost Items)
+
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
   (2, 4, 'Thank you for reporting this. We are investigating.', false, true, CURRENT_TIMESTAMP - INTERVAL '1 day'),
   (2, 5, 'Checked security cameras - laptop last seen at 2 PM', true, true, CURRENT_TIMESTAMP - INTERVAL '18 hours');
 
--- Incident 3 Comments (Medical Emergency)
+
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
   (3, 2, 'Ambulance has been called. ETA 5 minutes.', true, true, CURRENT_TIMESTAMP - INTERVAL '3.5 hours'),
   (3, 2, 'Patient transported to hospital. Follow-up care arranged.', false, true, CURRENT_TIMESTAMP - INTERVAL '2 hours');
 
--- Incident 5 Comments (Network Outage)
+
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
   (5, 2, 'IT team investigating root cause', false, true, CURRENT_TIMESTAMP - INTERVAL '5.5 hours'),
   (5, 2, 'Issue caused by failed switch in server room', true, true, CURRENT_TIMESTAMP - INTERVAL '5 hours'),
   (5, 2, 'Switch replaced, connectivity restored', false, true, CURRENT_TIMESTAMP - INTERVAL '4 hours');
 
--- Incident 8 Comments (Maintenance)
+
 INSERT INTO INCIDENT_COMMENTS (Incident_id, User_id, Comment_text, is_internal, is_admin_comment, Comment_time)
 VALUES
   (8, 5, 'Completed maintenance - all dispensers refilled', false, true, CURRENT_TIMESTAMP - INTERVAL '2.5 days');
 
--- ============================================================================
--- INCIDENT PHOTOS
--- ============================================================================
 INSERT INTO INCIDENT_PHOTOS (Incident_id, Uploaded_by, File_path, Uploaded_time)
 VALUES
   (3, 7, '/uploads/medical_incident_1.jpg', CURRENT_TIMESTAMP - INTERVAL '3.8 hours'),

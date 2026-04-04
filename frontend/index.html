@@ -58,6 +58,52 @@
             gap: 20px;
         }
 
+        /* ===== FILE UPLOAD STYLES ===== */
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 18px;
+            cursor: pointer;
+            background: #ffffff;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-align: center;
+            width: 100%;
+        }
+        .custom-file-upload:hover {
+            background: #f8fafc;
+            border-color: #5a67d8;
+            color: #5a67d8;
+        }
+        .file-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .file-list-item {
+            font-size: 13px;
+            color: #4a5568;
+            background: #edf2f7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-list-item .remove-file {
+            cursor: pointer;
+            color: #e53e3e;
+            font-weight: bold;
+            padding: 0 4px;
+        }
+        .file-list-item .remove-file:hover {
+            text-decoration: underline;
+        }
+
         .user-badge {
             background: rgba(255, 255, 255, 0.2);
             padding: 8px 16px;
@@ -111,7 +157,7 @@
             width: 320px;
             height: 100vh;
             background: rgba(4, 4, 80, 0.95);
-            backdrop-filter: blur(15px);
+            /* backdrop-filter: blur(15px); */
             z-index: 2001;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color: white;
@@ -180,7 +226,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(4px);
+            /* backdrop-filter: blur(4px); */
             z-index: 2000;
             display: none;
             opacity: 0;
@@ -999,6 +1045,32 @@
                                 placeholder="Describe what happened, when, and any other relevant details..."
                                 required></textarea>
                         </div>
+                        
+                        <div class="form-group" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; background: #fafbfc;">
+                            <label style="margin-bottom: 12px; display: block; font-weight: 600; color: #2d3748;">Incident Media Uploads</label>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <label class="custom-file-upload">
+                                    <input type="file" id="photos" accept="image/*" multiple style="display: none;">
+                                    📷 Browse and Add Photos
+                                </label>
+                                <div id="photos-list" class="file-list"></div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label class="custom-file-upload">
+                                    <input type="file" id="videos" accept="video/*" multiple style="display: none;">
+                                    🎥 Browse and Add Videos
+                                </label>
+                                <div id="videos-list" class="file-list"></div>
+                            </div>
+                            <div style="margin-bottom: 5px;">
+                                <label class="custom-file-upload">
+                                    <input type="file" id="audios" accept="audio/*" multiple style="display: none;">
+                                    🎵 Browse and Add Audios
+                                </label>
+                                <div id="audios-list" class="file-list"></div>
+                            </div>
+                        </div>
                         <div class="form-group"
                             style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
                             <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0;">
@@ -1175,6 +1247,9 @@
         async function apiFetch(path, opts = {}) {
             const options = { ...opts };
             options.headers = getHeaders(options.headers);
+            if (options.body instanceof FormData) {
+                delete options.headers['Content-Type'];
+            }
             return fetch(`${API_URL}${path}`, options);
         }
         let currentUser = null;
@@ -1208,39 +1283,7 @@
 
         // BUET Campus Locations - Accurate locations from BUET campus map
         // Campus center: 23.7267°N, 90.3927°E (Palashi, Dhaka)
-        const BUET_LOCATIONS = {
-            1: { name: 'Main Gate', lat: 23.7310, lng: 90.3880, building: 'Main Entrance', category: 'Gate' },
-            2: { name: 'Shahid Abrar Fahad Library (Central Library)', lat: 23.7268, lng: 90.3912, building: 'Library Building', category: 'Academic' },
-            3: { name: 'Registrar Building', lat: 23.7255, lng: 90.3895, building: 'Administration', category: 'Administrative' },
-            4: { name: 'Rector\'s Office', lat: 23.7253, lng: 90.3890, building: 'Admin Block', category: 'Administrative' },
-            5: { name: 'ECE Building (Electrical & Computer Engineering)', lat: 23.7275, lng: 90.3935, building: 'ECE Block', category: 'Academic' },
-            6: { name: 'EME Building (Mechanical Engineering)', lat: 23.7290, lng: 90.3950, building: 'ME Block', category: 'Academic' },
-            7: { name: 'Civil Engineering Building', lat: 23.7268, lng: 90.3945, building: 'CE Block', category: 'Academic' },
-            8: { name: 'Chemistry Department', lat: 23.7285, lng: 90.3920, building: 'Science Block', category: 'Academic' },
-            9: { name: 'Physics Department', lat: 23.7288, lng: 90.3915, building: 'Science Block', category: 'Academic' },
-            10: { name: 'Architecture Building', lat: 23.7305, lng: 90.3960, building: 'Arch Block', category: 'Academic' },
-            11: { name: 'Chemical Engineering Building', lat: 23.7275, lng: 90.3925, building: 'ChE Block', category: 'Academic' },
-            12: { name: 'Ahsanullah Hall', lat: 23.7305, lng: 90.3975, building: 'Boys Dormitory', category: 'Hostel' },
-            13: { name: 'Titumir Hall', lat: 23.7295, lng: 90.3860, building: 'Boys Dormitory', category: 'Hostel' },
-            14: { name: 'Suhrawardy Hall', lat: 23.7280, lng: 90.3905, building: 'Boys Dormitory', category: 'Hostel' },
-            15: { name: 'Sher-e-Bangla Hall', lat: 23.7275, lng: 90.3880, building: 'Boys Dormitory', category: 'Hostel' },
-            16: { name: 'Dr. M.A. Rashid Hall', lat: 23.7265, lng: 90.3920, building: 'Boys Dormitory', category: 'Hostel' },
-            17: { name: 'Sabekun Nahar Sony Hall', lat: 23.7310, lng: 90.3895, building: 'Girls Dormitory', category: 'Hostel' },
-            18: { name: 'Shahid Smrity Hall', lat: 23.7320, lng: 90.3925, building: 'Boys Dormitory', category: 'Hostel' },
-            19: { name: 'Swadhinata Hall', lat: 23.7315, lng: 90.3890, building: 'Boys Dormitory', category: 'Hostel' },
-            20: { name: 'Kazi Nazrul Islam Hall', lat: 23.7300, lng: 90.3945, building: 'Boys Dormitory', category: 'Hostel' },
-            21: { name: 'BUET Masjid (Main Mosque)', lat: 23.7240, lng: 90.3915, building: 'Mosque', category: 'Religious' },
-            22: { name: 'Central Cafeteria', lat: 23.7245, lng: 90.3895, building: 'Food Court', category: 'Facility' },
-            23: { name: 'BUET Stadium & Playground', lat: 23.7220, lng: 90.3850, building: 'Sports Complex', category: 'Sports' },
-            24: { name: 'Gymnasium', lat: 23.7215, lng: 90.3905, building: 'Sports Facility', category: 'Sports' },
-            25: { name: 'Medical Center', lat: 23.7250, lng: 90.3950, building: 'Healthcare', category: 'Medical' },
-            26: { name: 'Bus Terminus', lat: 23.7330, lng: 90.3895, building: 'Transport', category: 'Transport' },
-            27: { name: 'Machine Shop & Manufacturing Lab', lat: 23.7260, lng: 90.3955, building: 'Workshop', category: 'Lab' },
-            28: { name: 'IT Center (ICT Academy)', lat: 23.7270, lng: 90.3875, building: 'Tech Hub', category: 'Academic' },
-            29: { name: 'Student Center', lat: 23.7235, lng: 90.3920, building: 'Community Space', category: 'Facility' },
-            30: { name: 'Water Treatment Plant', lat: 23.7210, lng: 90.3870, building: 'Infrastructure', category: 'Utility' },
-            31: { name: 'Shaheed Minar (Monument)', lat: 23.7325, lng: 90.3880, building: 'Memorial', category: 'Monument' }
-        };
+        let BUET_LOCATIONS = {};
 
 
 
@@ -1360,6 +1403,12 @@
             if (target) {
                 target.classList.add('active');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => {
+                    if (window.map) window.map.invalidateSize();
+                    if (window.reportMap && typeof window.reportMap.invalidateSize === 'function') {
+                        window.reportMap.invalidateSize();
+                    }
+                }, 100);
             }
 
             // Update sidebar active selection
@@ -1461,6 +1510,34 @@
                                 </h4>
                                 <div style="height: 2px; width: 30px; background: #172e50; margin-bottom: 15px; border-radius: 2px;"></div>
                                 <p style="margin: 0; font-size: 16px; line-height: 1.7; color: #333; white-space: pre-wrap; font-family: inherit;">${i.description || 'No detailed description provided.'}</p>
+                                
+                                <!-- Render Attached Media -->
+                                ${i.photos && i.photos.length > 0 ? `
+                                <div style="margin-top: 20px;">
+                                    <h5 style="margin-bottom: 10px; font-size: 14px; color: #172e50;">Attached Photos</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                        ${i.photos.map(p => `<img src="${p}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: cover;" alt="Incident Photo">`).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                ${i.videos && i.videos.length > 0 ? `
+                                <div style="margin-top: 20px;">
+                                    <h5 style="margin-bottom: 10px; font-size: 14px; color: #172e50;">Attached Videos</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                        ${i.videos.map(v => `<video src="${v}" controls style="max-width: 300px; border-radius: 8px; border: 1px solid #e2e8f0;"></video>`).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                ${i.audios && i.audios.length > 0 ? `
+                                <div style="margin-top: 20px;">
+                                    <h5 style="margin-bottom: 10px; font-size: 14px; color: #172e50;">Attached Audios</h5>
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        ${i.audios.map(a => `<audio src="${a}" controls style="width: 100%; border-radius: 8px;"></audio>`).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
                             </div>
 
                              <!-- Additional Context Card -->
@@ -2756,9 +2833,48 @@
         }
 
         // Report Incident
+        
+        let accPhotos = [];
+        let accVideos = [];
+        let accAudios = [];
+        
+        function handleFileSelection(inputId) {
+            const el = document.getElementById(inputId);
+            if(!el) return;
+            el.addEventListener('change', function(e) {
+                const arrayObj = inputId === 'photos' ? accPhotos : inputId === 'videos' ? accVideos : accAudios;
+                for (let i = 0; i < e.target.files.length; i++) {
+                    arrayObj.push(e.target.files[i]);
+                }
+                renderFileList(inputId);
+                e.target.value = ''; // Reset input so same file can be selected again
+            });
+        }
+
+        function removeFileSelection(type, index) {
+            if(type === 'photos') accPhotos.splice(index, 1);
+            if(type === 'videos') accVideos.splice(index, 1);
+            if(type === 'audios') accAudios.splice(index, 1);
+            renderFileList(type);
+        }
+
+        function renderFileList(type) {
+            const listId = type + '-list';
+            const arr = type === 'photos' ? accPhotos : type === 'videos' ? accVideos : accAudios;
+            document.getElementById(listId).innerHTML = arr.map((file, idx) => 
+                `<div class="file-list-item">
+                    <span>${file.name}</span>
+                    <span class="remove-file" onclick="removeFileSelection('${type}', ${idx})">✕</span>
+                </div>`
+            ).join('');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadLocations();
+            handleFileSelection('photos');
+            handleFileSelection('videos');
+            handleFileSelection('audios');
+            
             document.getElementById('incidentForm')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const alertEl = document.getElementById('reportAlert');
@@ -2768,20 +2884,27 @@
                     submitBtn.disabled = true;
                     submitBtn.textContent = 'Reporting...';
                     
+                    const formData = new FormData();
+                    formData.append('reported_by', currentUser.user_id);
+                    formData.append('type_id', document.getElementById('incident_type').value);
+                    formData.append('location_id', document.getElementById('location_id').value);
+                    formData.append('description', document.getElementById('description').value);
+                    formData.append('is_public', document.getElementById('is_public').checked);
+
+                    for (let j = 0; j < accPhotos.length; j++) formData.append('photos', accPhotos[j]);
+                    for (let j = 0; j < accVideos.length; j++) formData.append('videos', accVideos[j]);
+                    for (let j = 0; j < accAudios.length; j++) formData.append('audios', accAudios[j]);
+
                     const response = await apiFetch('/incidents', {
                         method: 'POST',
-                        body: JSON.stringify({
-                            reported_by: currentUser.user_id,
-                            type_id: document.getElementById('incident_type').value,
-                            location_id: document.getElementById('location_id').value,
-                            description: document.getElementById('description').value,
-                            is_public: document.getElementById('is_public').checked
-                        })
+                        body: formData
                     });
 
                     if (response.ok) {
                         alertEl.innerHTML = '<div class="alert alert-success">Incident reported successfully! Thank you for helping us keep campus safe.</div>';
                         document.getElementById('incidentForm').reset();
+                        accPhotos = []; accVideos = []; accAudios = [];
+                        renderFileList('photos'); renderFileList('videos'); renderFileList('audios');
                         // Also reset map pin
                         cleanupMap('reportMap');
                         initializeReportMap();
@@ -2809,25 +2932,27 @@
                 const locations = await apiFetch('/locations').then(r => r.json()).catch(e => { console.error('Error:', e); return []; });
                 const select = document.getElementById('location_id');
 
-                select.innerHTML = '<option value="">Select a location...</option>';
+                if (select) {
+                    select.innerHTML = '<option value="">Select a location...</option>';
+                }
 
-                // Group locations by category for better organization
                 if (locations && locations.length > 0) {
                     locations.forEach(loc => {
-                        const option = document.createElement('option');
-                        option.value = loc.location_id;
-                        const buetLoc = BUET_LOCATIONS[loc.location_id];
-                        const category = buetLoc ? ` [${buetLoc.category}]` : '';
-                        option.textContent = `${loc.location_name}${category}`;
-                        select.appendChild(option);
-                    });
-                } else {
-                    // Fallback to hardcoded locations
-                    Object.entries(BUET_LOCATIONS).forEach(([id, loc]) => {
-                        const option = document.createElement('option');
-                        option.value = id;
-                        option.textContent = `${loc.name} [${loc.category}]`;
-                        select.appendChild(option);
+                        BUET_LOCATIONS[loc.location_id] = {
+                            name: loc.location_name,
+                            lat: parseFloat(loc.latitude),
+                            lng: parseFloat(loc.longitude),
+                            building: loc.building,
+                            category: loc.category
+                        };
+                        
+                        if (select) {
+                            const option = document.createElement('option');
+                            option.value = loc.location_id;
+                            const category = loc.category ? ` [${loc.category}]` : '';
+                            option.textContent = `${loc.location_name}${category}`;
+                            select.appendChild(option);
+                        }
                     });
                 }
             } catch (err) {

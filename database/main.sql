@@ -14,9 +14,10 @@ CREATE TABLE INCIDENT_STATUS (
 CREATE TABLE Locations (
     Location_id SERIAL PRIMARY KEY,
     Location_name VARCHAR(100) NOT NULL,
+    Latitude DECIMAL(9,6) NOT NULL,
+    Longitude DECIMAL(9,6) NOT NULL,
     Building VARCHAR(100),
-    Floor VARCHAR(20),
-    Room VARCHAR(50)
+    Category VARCHAR(50)
 );
 
 CREATE TABLE USERS (
