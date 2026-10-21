@@ -252,15 +252,4 @@ All `/api` routes require `Authorization: Bearer <token>` except the public auth
 - Passwords are hashed with bcrypt, and JWTs are verified on every `/api` request.
 - Role-based access is enforced server-side with a `requireRole(...)` middleware.
 - `.env` is git-ignored. Never commit real credentials.
-- The password-reset code is currently **printed to the server console** instead of emailed (see below).
-
-## Known Issues and Roadmap
-
-- [ ] **Schema and code are out of sync.** `server.js` uses `FORUM_POST_REACTIONS` and the columns `FORUM_THREAD.Is_anonymous` and `FORUM_THREAD.Incident_id`, but `main.sql` does not create them. Creating threads and reacting to posts will fail on a fresh database until they are added.
-- [ ] Add explicit concurrency control: choose isolation levels per operation (for example `SERIALIZABLE` for assignment and resolution) and row locking (`SELECT ... FOR UPDATE`) to prevent lost updates and double assignment.
-- [ ] Apply `requireRole` to all state-changing endpoints. Several currently trust a `user_id` sent in the request body.
-- [ ] Deliver verification codes by email or SMS. `nodemailer` and `twilio` are installed but not wired up.
-- [ ] Remove unused dependencies (`jsdom`, `nodemailer`, `twilio`) or start using them.
-- [ ] Move the in-memory verification-code store to the database or Redis.
-- [ ] Split `server.js` into routes, controllers and services.
-- [ ] Add automated tests and a CI workflow.
+- The password-reset code is currently **printed to the server console** instead of emailed 
